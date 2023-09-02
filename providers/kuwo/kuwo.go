@@ -198,7 +198,7 @@ func (k *Kuwo) buildLyricApi() dphttp.ApiFunc[*miaosic.Media, *miaosic.Media] {
 
 				return true
 			})
-			media.Lyric = strings.Join(lrcs, "\n")
+			media.Lyric = []miaosic.Lyrics{miaosic.ParseLyrics("default", strings.Join(lrcs, "\n"))}
 			return nil
 		})
 }

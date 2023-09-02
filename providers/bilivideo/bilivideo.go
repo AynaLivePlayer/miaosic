@@ -2,8 +2,10 @@ package bilivideo
 
 import (
 	"errors"
+	"fmt"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
+	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
 	"miaosic"
@@ -30,6 +32,7 @@ func NewBilibiliViedo(requester dphttp.IRequester) *BilibiliVideo {
 		"Cookie":     "buvid3=9A8B3564-BDA9-407F-B45F-D5C40786CA49167618infoc;",
 	}
 	pvdr := &BilibiliVideo{
+		requester: requester,
 		BVRegex:   regexp.MustCompile("^BV[0-9A-Za-z]+"),
 		IdRegex:   regexp.MustCompile("^BV[0-9A-Za-z]+(\\?p=[0-9]+)?"),
 		PageRegex: regexp.MustCompile("p=[0-9]+"),
@@ -37,7 +40,7 @@ func NewBilibiliViedo(requester dphttp.IRequester) *BilibiliVideo {
 	}
 	pvdr.InfoFunc = pvdr.buildInfoApi()
 	//pvdr.FileFunc = buildFileApi(requester, headers)
-	//pvdr.LyricFunc = buildLyricApi(requester, headers)
+	pvdr.LyricFunc = nil
 	//pvdr.PlaylistFunc = buildPlaylistApi(requester, headers)
 	pvdr.SearchFunc = pvdr.buildSearchApi()
 	return pvdr
@@ -85,7 +88,7 @@ func (b *BilibiliVideo) buildInfoApi() dphttp.ApiFunc[*miaosic.Media, *miaosic.M
 			return deepcolor.NewGetRequestWithSingleQuery(
 				"https://api.bilibili.com/x/web-interface/view/detail?&aid=&jsonp=jsonp",
 				"bvid", b.header,
-			)(params.Meta.Identifier)
+			)(b.getBv(params.Meta.Identifier))
 		},
 		deepcolor.ParserGJson,
 		func(result *gjson.Result, media *miaosic.Media) error {
@@ -99,22 +102,11 @@ func (b *BilibiliVideo) buildInfoApi() dphttp.ApiFunc[*miaosic.Media, *miaosic.M
 		})
 }
 
-//func buildFileApi(requester dphttp.IRequester, headers map[string]string) dphttp.ApiFunc[*miaosic.Media, *miaosic.Media] {
-//	return deepcolor.CreateApiFunc(
-//		requester,
-//		func(params *miaosic.Media) (*dphttp.Request, error) {
-//			return deepcolor.NewGetRequestWithSingleQuery(
-//				"https://api.bilibili.com/x/player/playurl?&avid=&cid=&qn=80&type=&otype=json",
-//				"bvid", headers,
-//			)(params.Meta.Identifier)
-//		}
-//}
-
 func (b *BilibiliVideo) buildSearchApi() dphttp.ApiFuncResult[string, []*miaosic.Media] {
 	return deepcolor.CreateApiResultFunc(
 		b.requester,
 		deepcolor.NewGetRequestWithSingleQuery(
-			"https://api.bilibili.com/x/web-interface/search/type?search_type=video&page=1",
+			"https://api.bilibili.com/x/web-interface/wbi/search/type?search_type=video&page=1",
 			"keyword", b.header),
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, result *[]*miaosic.Media) error {
@@ -138,91 +130,51 @@ func (b *BilibiliVideo) buildSearchApi() dphttp.ApiFuncResult[string, []*miaosic
 		})
 }
 
-//pvdr.cidApi = dphttp.CreateResultAPI(
-//requester,
-//&dphttp.ApiInfo[string, *gjson.Result, []string]{
-//Request: deepcolor.NewGetRequestWithSingleQuery(
-//"https://api.bilibili.com/x/web-interface/view/detail?&aid=&jsonp=jsonp",
-//"bvid", pvdr.header,
-//),
-//Parser: deepcolor.ParserGJson,
-//Selector: func (result *gjson.Result) ([]string, error) {
-//rcids := result.Get("data.View.pages.#.cid").Array()
-//cids := make([]string, 0)
-//if len(cids) == 0 {
-//cid := result.Get("data.View.cid").String()
-//if cid == "" {
-//return nil, providers.ErrorExternalApi
-//}
-//cids = append(cids, cid)
-//} else {
-//for _, r := range rcids {
-//cids = append(cids, r.String())
-//}
-//}
-//return cids, nil
-//},
-//},
-//)
+func (b *BilibiliVideo) cidApi(bvid string) ([]string, error) {
+	return deepcolor.CreateApiResultFunc(
+		b.requester,
+		deepcolor.NewGetRequestWithSingleQuery(
+			"https://api.bilibili.com/x/web-interface/view/detail?&aid=&jsonp=jsonp", "bvid", b.header),
+		deepcolor.ParserGJson,
+		func(resp *gjson.Result, result *[]string) error {
+			for _, r := range resp.Get("data.View.pages.#.cid").Array() {
+				*result = append(*result, r.String())
+			}
+			if len(*result) == 0 {
+				return errors.New("failed to find cid data")
+			}
+			return nil
+		})(bvid)
+}
 
-//var fileApi = dphttp.CreateReceiverAPI(
-//	requester,
-//	&dphttp.ApiInfo[[]string, *gjson.Result, *model.Media]{
-//		Request: deepcolor.NewGetRequestWithQuery(
-//			"https://api.bilibili.com/x/player/playurl?type=&otype=json&fourk=1&qn=32&avid=",
-//			[]string{"bvid", "cid"}, pvdr.header),
-//		Parser: deepcolor.ParserGJson,
-//		Receiver: func(result *gjson.Result, container *model.Media) error {
-//			uri := result.Get("data.durl.0.url").String()
-//			if uri == "" {
-//				return providers.ErrorExternalApi
-//			}
-//			container.Url = uri
-//			header := make(map[string]string)
-//			_ = copier.Copy(&header, &pvdr.header)
-//			header["Referer"] = fmt.Sprintf("https://www.bilibili.com/video/%s", pvdr.getBv(container.Meta.(model.Meta).Id))
-//			container.Header = header
-//			return nil
-//		},
-//	})
-//return pvdr
-//}
-
-//
-//var BilibiliVideoAPI *BilibiliVideo
-//
-//func init() {
-//	BilibiliVideoAPI = _newBilibiliVideo()
-//	Providers[BilibiliVideoAPI.GetName()] = BilibiliVideoAPI
-//}
-//
-
-//
-//func (b *BilibiliVideo) GetPlaylist(playlist *model.Meta) ([]*model.Media, error) {
-//	return nil, providers.ErrorExternalApi
-//}
-//
-//func (b *BilibiliVideo) FormatPlaylistUrl(uri string) string {
-//	return ""
-//}
-//
-//func (b *BilibiliVideo) Search(keyword string) ([]*model.Media, error) {
-//	return b.searchApi(keyword)
-//}
-//
-//func (b *BilibiliVideo) UpdateMedia(media *model.Media) error {
-//	err := b.infoApi(b.getBv(media.Meta.(model.Meta).Id), media)
-//	if err != nil {
-//		return providers.ErrorExternalApi
-//	}
-//	return nil
-//}
-//
-//func (b *BilibiliVideo) UpdateMediaUrl(media *model.Media) error {
-//	page := b.getPage(media.Meta.(model.Meta).Id) - 1
-//	cids, err := b.cidApi(b.getBv(media.Meta.(model.Meta).Id))
-//	if err != nil || page > len(cids) {
-//		return providers.ErrorExternalApi
-//	}
-//	return b.fileApi([]string{b.getBv(media.Meta.(model.Meta).Id), cids[page]}, media)
-//}
+func (b *BilibiliVideo) UpdateMediaUrl(media *miaosic.Media) error {
+	page := b.getPage(media.Meta.Identifier) - 1
+	cids, err := b.cidApi(b.getBv(media.Meta.Identifier))
+	if err != nil {
+		return err
+	}
+	if err != nil || page >= len(cids) {
+		return miaosic.ErrorExternalApi
+	}
+	return deepcolor.CreateApiFunc(
+		b.requester,
+		func(params *miaosic.Media) (*dphttp.Request, error) {
+			return deepcolor.NewGetRequestWithQuery(
+				"https://api.bilibili.com/x/player/playurl?type=&otype=json&fourk=1&qn=32&avid=",
+				[]string{"bvid", "cid"}, b.header,
+			)([]string{b.getBv(media.Meta.Identifier), cids[page]})
+		},
+		deepcolor.ParserGJson,
+		func(result *gjson.Result, container *miaosic.Media) error {
+			uri := result.Get("data.durl.0.url").String()
+			if uri == "" {
+				return miaosic.ErrorExternalApi
+			}
+			container.Url = uri
+			header := make(map[string]string)
+			_ = copier.Copy(&header, &b.header)
+			header["Referer"] = fmt.Sprintf("https://www.bilibili.com/video/%s", b.getBv(container.Meta.Identifier))
+			container.Header = header
+			return nil
+		})(media, media)
+}

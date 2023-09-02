@@ -1,40 +1,29 @@
 package bilivideo
 
 import (
-	"AynaLivePlayer/core/adapter"
-	"AynaLivePlayer/core/model"
+	"fmt"
+	"github.com/aynakeya/deepcolor"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"miaosic"
 	"regexp"
 	"strings"
 	"testing"
 )
 
-func TestBV_GetMusicMeta(t *testing.T) {
-	var api adapter.MediaProvider = BilibiliVideoAPI
+var api miaosic.MediaProvider = NewBilibiliViedo(deepcolor.NewRestyRequester())
 
-	media := model.Media{
-		Meta: model.Meta{
-			Name: api.GetName(),
-			Id:   "BV1434y1q71P",
-		},
-	}
-	err := api.UpdateMedia(&media)
-	assert.Nil(t, err)
+func TestBV_GetMusicMeta(t *testing.T) {
+	media := api.MatchMedia("BV1434y1q71P")
+	require.NotNil(t, media)
+	require.NoError(t, api.UpdateMedia(media))
 	assert.Equal(t, "卦者那啥子靈風", media.Artist)
 }
 
 func TestBV_GetMusic(t *testing.T) {
-	var api adapter.MediaProvider = BilibiliVideoAPI
-	media := model.Media{
-		Meta: model.Meta{
-			Name: api.GetName(),
-			Id:   "BV1434y1q71P",
-		},
-	}
-	err := api.UpdateMedia(&media)
-	assert.Nil(t, err)
-	err = api.UpdateMediaUrl(&media)
-	assert.Nil(t, err)
+	media := api.MatchMedia("BV1434y1q71P")
+	require.NoError(t, api.UpdateMedia(media))
+	require.NoError(t, api.UpdateMediaUrl(media))
 	assert.True(t, strings.Contains(media.Url, "bilivideo"), media.Url)
 }
 
@@ -43,41 +32,23 @@ func TestBV_Regex(t *testing.T) {
 }
 
 func TestBV_GetMusicMeta2(t *testing.T) {
-	var api adapter.MediaProvider = BilibiliVideoAPI
-
-	media := model.Media{
-		Meta: model.Meta{
-			Name: api.GetName(),
-			Id:   "BV1gA411P7ir?p=3",
-		},
-	}
-	err := api.UpdateMedia(&media)
-	assert.Nil(t, err)
-	if err != nil {
-		return
-	}
-	assert.Equal(t, "沈默沈默", media.Artist)
+	media := api.MatchMedia("BV1gA411P7ir?p=3")
+	require.NotNil(t, media)
+	require.NoError(t, api.UpdateMedia(media))
+	require.Equal(t, "沈默沈默", media.Artist)
 }
 
 func TestBV_GetMusic2(t *testing.T) {
-	var api adapter.MediaProvider = BilibiliVideoAPI
-	media := model.Media{
-		Meta: model.Meta{
-			Name: api.GetName(),
-			Id:   "BV1gA411P7ir?p=1",
-		},
-	}
-	err := api.UpdateMedia(&media)
-	assert.Nil(t, err)
-	err = api.UpdateMediaUrl(&media)
-	assert.Nil(t, err)
+	media := api.MatchMedia("BV1gA411P7ir?p=3")
+	require.NoError(t, api.UpdateMedia(media))
+	require.NoError(t, api.UpdateMediaUrl(media))
 	assert.Equal(t, "沈默沈默", media.Artist)
+	fmt.Println(media.Url)
 }
 
 func TestBV_Search(t *testing.T) {
-	var api adapter.MediaProvider = BilibiliVideoAPI
-	result, err := api.Search("家有女友")
-	assert.Nil(t, err, "Search Error")
-	assert.Truef(t, len(result) > 0, "Search Result Empty")
+	result, err := api.Search("家有女友op")
+	require.NoError(t, err, "Search Error")
+	require.NotEmpty(t, result, "Search Result Empty")
 	t.Log(result[0])
 }

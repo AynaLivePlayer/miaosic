@@ -1,0 +1,129 @@
+package local
+
+import (
+	"github.com/dhowden/tag"
+	"github.com/sahilm/fuzzy"
+	"miaosic"
+	"os"
+	"path"
+	"path/filepath"
+	"sort"
+	"strings"
+)
+
+func getPlaylistNames(localdir string) []string {
+	names := make([]string, 0)
+	items, _ := os.ReadDir(localdir)
+	for _, item := range items {
+		if item.IsDir() {
+			names = append(names, item.Name())
+		}
+	}
+	return names
+}
+
+// readLocalPlaylist read files under a directory
+// and return a _LocalPlaylist object.
+// This function assume this directory exists
+func readLocalPlaylist(localdir string, playlist *miaosic.Playlist) error {
+	p1th := playlist.Meta.Identifier
+	playlist.Medias = make([]*miaosic.Media, 0)
+	fullPath := filepath.Join(localdir, p1th)
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		return err
+	}
+	items, _ := os.ReadDir(fullPath)
+	for _, item := range items {
+		// if item is a file, read file
+		if !item.IsDir() {
+			fn := item.Name()
+			media := miaosic.Media{
+				Meta: miaosic.MediaMeta{
+					Provider:   "local",
+					Identifier: path.Join(playlist.Meta.Identifier, fn),
+				},
+			}
+			if readMediaFile(localdir, &media) != nil {
+				continue
+			}
+			playlist.Medias = append(playlist.Medias, &media)
+		}
+	}
+	return nil
+}
+
+func _getOrDefault(s string, def string) string {
+	if s == "" {
+		return def
+	}
+	return s
+}
+
+func readMediaFile(localdir string, media *miaosic.Media) error {
+	p := path.Join(localdir, media.Meta.Identifier)
+	f, err := os.Open(p)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	meta, err := tag.ReadFrom(f)
+	if err != nil {
+		return err
+	}
+	media.Title = _getOrDefault(meta.Title(), filepath.Base(p))
+	media.Artist = _getOrDefault(meta.Artist(), "Unknown")
+	media.Album = _getOrDefault(meta.Album(), "Unknown")
+	media.Lyric = []miaosic.Lyrics{miaosic.ParseLyrics("default", meta.Lyrics())}
+	if meta.Picture() != nil {
+		media.Cover.Data = meta.Picture().Data
+	}
+	return nil
+}
+
+type mediaRanking struct {
+	media *miaosic.Media
+	score int
+}
+
+func RankMedia(keyword string, medias []*miaosic.Media) []*miaosic.Media {
+	patterns := strings.Split(keyword, " ")
+	data := make([]*mediaRanking, 0)
+
+	for _, media := range medias {
+		m := media
+		data = append(data, &mediaRanking{
+			media: m,
+			score: 0,
+		})
+	}
+
+	for _, pattern := range patterns {
+		pattern = strings.ToLower(pattern)
+		dataStr := make([]string, 0)
+		for _, d := range data {
+			dataStr = append(dataStr, strings.ToLower(d.media.Title))
+		}
+		for _, match := range fuzzy.Find(pattern, dataStr) {
+			data[match.Index].score += match.Score
+		}
+		dataStr = make([]string, 0)
+		for _, d := range data {
+			dataStr = append(dataStr, strings.ToLower(d.media.Artist))
+		}
+		for _, match := range fuzzy.Find(pattern, dataStr) {
+			data[match.Index].score += match.Score
+		}
+	}
+
+	sort.Slice(data, func(i, j int) bool {
+		return data[i].score > data[j].score
+	})
+
+	result := make([]*miaosic.Media, 0)
+	for _, d := range data {
+		if d.score > 0 {
+			result = append(result, d.media)
+		}
+	}
+	return result
+}

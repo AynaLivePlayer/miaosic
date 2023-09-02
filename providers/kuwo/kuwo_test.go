@@ -52,33 +52,27 @@ func TestKuwo_GetMusic(t *testing.T) {
 	require.True(t, len(media.Url) > 0)
 }
 
-//func TestKuwo_UpdateMediaLyric(t *testing.T) {
-//	var api adapter.MediaProvider = providers.KuwoAPI
-//	media := model.Media{
-//		Meta: model.Meta{
-//			Name: api.GetName(),
-//			Id:   "22804772",
-//		},
-//	}
-//	err := api.UpdateMediaLyric(&media)
-//	fmt.Println(err)
-//	fmt.Println(media.Lyric)
-//}
-//
-//func TestKuwo_GetPlaylist(t *testing.T) {
-//	var api adapter.MediaProvider = providers.KuwoAPI
-//	playlist, err := api.GetPlaylist(&model.Meta{
-//		Name: api.GetName(),
-//		//Id:   "1082685104",
-//		Id: "2959147566",
-//	})
-//	if err != nil {
-//		fmt.Println(err)
-//		return
-//	}
-//	fmt.Println(len(playlist))
-//	for _, media := range playlist {
-//		fmt.Println(media.Title, media.Artist, media.Album)
-//	}
-//
-//}
+func TestKuwo_UpdateMediaLyric(t *testing.T) {
+	media := miaosic.Media{
+		Meta: miaosic.MediaMeta{
+			Provider:   api.GetName(),
+			Identifier: "22804772",
+		},
+	}
+	err := api.UpdateMediaLyric(&media)
+	require.NoError(t, err)
+	require.NotEmpty(t, media.Lyric)
+}
+
+func TestKuwo_GetPlaylist(t *testing.T) {
+	playlist := miaosic.Playlist{
+		Meta: miaosic.MediaMeta{
+			Provider:   api.GetName(),
+			Identifier: "2959147566",
+		},
+	}
+	err := api.UpdatePlaylist(&playlist)
+	require.NoError(t, err)
+	require.NotEmpty(t, playlist.Medias)
+	t.Logf("sucessfully get %d medias", len(playlist.Medias))
+}

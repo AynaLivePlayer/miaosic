@@ -23,7 +23,7 @@ type Media struct {
 	Artist string
 	Cover  Picture
 	Album  string
-	Lyric  string
+	Lyric  []Lyrics
 	Url    string
 	Header map[string]string
 	Meta   MediaMeta
@@ -46,4 +46,12 @@ type MediaProvider interface {
 	UpdateMedia(media *Media) error
 	UpdateMediaUrl(media *Media) error
 	UpdateMediaLyric(media *Media) error
+}
+
+type Loginable interface {
+	Login(username string, password string) error
+	QrLogin() string
+	QrLoginVerify() bool
+	RestoreSession(session string) error
+	SaveSession() string
 }

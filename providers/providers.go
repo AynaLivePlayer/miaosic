@@ -37,14 +37,15 @@ func (d *DeepcolorProvider) UpdateMedia(media *miaosic.Media) error {
 	return d.InfoFunc(media, media)
 }
 
-func (d DeepcolorProvider) UpdateMediaUrl(media *miaosic.Media) error {
+func (d *DeepcolorProvider) UpdateMediaUrl(media *miaosic.Media) error {
 	if d.FileFunc == nil {
 		return miaosic.ErrNotImplemented
 	}
 	return d.FileFunc(media, media)
 }
 
-func (d DeepcolorProvider) UpdateMediaLyric(media *miaosic.Media) error {
+func (d *DeepcolorProvider) UpdateMediaLyric(media *miaosic.Media) error {
+	media.Lyric = nil
 	if d.LyricFunc == nil {
 		// if no lyric func, return nil
 		return nil
