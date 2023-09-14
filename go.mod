@@ -1,6 +1,4 @@
-module miaosic
-
-replace github.com/aynakeya/deepcolor => ../deepcolor
+module github.com/AynaLivePlayer/miaosic
 
 go 1.20
 
