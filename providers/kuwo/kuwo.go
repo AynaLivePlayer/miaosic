@@ -2,6 +2,8 @@ package kuwo
 
 import (
 	"fmt"
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/spf13/cast"
@@ -9,8 +11,6 @@ import (
 	"html"
 	"math"
 	"math/rand"
-	"miaosic"
-	"miaosic/providers"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,7 +18,6 @@ import (
 
 type Kuwo struct {
 	providers.DeepcolorProvider
-	requester      dphttp.IRequester
 	PlaylistRegex0 *regexp.Regexp
 	PlaylistRegex1 *regexp.Regexp
 	IdRegex0       *regexp.Regexp
@@ -26,20 +25,89 @@ type Kuwo struct {
 	header         map[string]string
 }
 
-func NewKuwo(requester dphttp.IRequester) *Kuwo {
+func NewKuwo() *Kuwo {
 	kw := &Kuwo{
-		requester:      requester,
 		PlaylistRegex0: regexp.MustCompile("[0-9]+"),
 		PlaylistRegex1: regexp.MustCompile("playlist/[0-9]+"),
 		IdRegex0:       regexp.MustCompile("^[0-9]+"),
 		IdRegex1:       regexp.MustCompile("^kw[0-9]+"),
 	}
 	kw.initToken()
-	kw.InfoFunc = kw.buildInfoApi()
-	kw.FileFunc = kw.buildFileApi()
-	kw.LyricFunc = kw.buildLyricApi()
-	kw.PlaylistFunc = kw.playlistApi
-	kw.SearchFunc = kw.buildSearchApi()
+	kw.InfoApi = deepcolor.CreateApiResultFunc(
+		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
+			return deepcolor.NewGetRequestWithSingleQuery(
+				"http://www.kuwo.cn/api/www/music/musicInfo",
+				"mid", meta.Identifier, kw.header)
+		},
+		deepcolor.ParserGJson,
+		func(resp *gjson.Result, media *miaosic.MediaInfo) error {
+			if resp.Get("data.musicrid").String() == "" {
+				return miaosic.ErrorExternalApi
+			}
+			media.Title = html.UnescapeString(resp.Get("data.name").String())
+			media.Cover.Url = resp.Get("data.pic").String()
+			media.Artist = resp.Get("data.artist").String()
+			media.Album = resp.Get("data.album").String()
+			return nil
+		})
+	kw.FileApi = deepcolor.CreateApiResultFunc(
+		func(param providers.FileApiParam) (*dphttp.Request, error) {
+			return deepcolor.NewGetRequestWithSingleQuery(
+				"http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url",
+				"rid", "MUSIC_"+param.Meta.Identifier, kw.header)
+		},
+		deepcolor.ParserText,
+		func(resp string, urls *[]miaosic.MediaUrl) error {
+			*urls = []miaosic.MediaUrl{miaosic.NewMediaUrl(resp, miaosic.QualityUnk)}
+			return nil
+		})
+	kw.LyricApi = deepcolor.CreateApiResultFunc(
+		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
+			return deepcolor.NewGetRequestWithSingleQuery(
+				"http://m.kuwo.cn/newh5/singles/songinfoandlrc",
+				"musicId", meta.Identifier, kw.header)
+		},
+		deepcolor.ParserGJson,
+		func(resp *gjson.Result, lyrics *[]miaosic.Lyrics) error {
+			lrcs := make([]string, 0)
+			resp.Get("data.lrclist").ForEach(func(key, value gjson.Result) bool {
+				lrcs = append(lrcs, fmt.Sprintf("[00:%s]%s", value.Get("time").String(), value.Get("lineLyric").String()))
+				return true
+			})
+			if len(lrcs) == 0 {
+				return miaosic.ErrorExternalApi
+			}
+			*lyrics = []miaosic.Lyrics{miaosic.ParseLyrics("default", strings.Join(lrcs, "\n"))}
+			return nil
+		})
+	kw.SearchApi = deepcolor.CreateApiResultFunc(
+		func(param providers.MediaSearchParam) (*dphttp.Request, error) {
+			return deepcolor.NewGetRequestWithQuery(
+				"http://www.kuwo.cn/api/www/search/searchMusicBykeyWord",
+				map[string]any{
+					"key": param.Keyword,
+					"pn":  param.Page,
+					"rn":  param.PageSize,
+				}, kw.header)
+		},
+		deepcolor.ParserGJson,
+		func(resp *gjson.Result, result *[]miaosic.MediaInfo) error {
+			resp.Get("data.list").ForEach(func(key, value gjson.Result) bool {
+				*result = append(*result, miaosic.MediaInfo{
+					Title:  html.UnescapeString(value.Get("name").String()),
+					Cover:  miaosic.Picture{Url: value.Get("pic").String()},
+					Artist: value.Get("artist").String(),
+					Album:  value.Get("album").String(),
+					Meta: miaosic.MediaMeta{
+						Provider:   kw.GetName(),
+						Identifier: value.Get("rid").String(),
+					},
+				})
+				return true
+			})
+			return nil
+		})
+	//kw.PlaylistFunc = kw.playlistApi
 	return kw
 }
 
@@ -47,42 +115,38 @@ func (k *Kuwo) GetName() string {
 	return "kuwo"
 }
 
-func (k *Kuwo) MatchMedia(keyword string) *miaosic.Media {
+func (k *Kuwo) MatchMedia(keyword string) (miaosic.MediaMeta, bool) {
 	if id := k.IdRegex0.FindString(keyword); id != "" {
-		return &miaosic.Media{
-			Meta: miaosic.MediaMeta{
-				Provider:   k.GetName(),
-				Identifier: id,
-			},
-		}
+		return miaosic.MediaMeta{
+			Provider:   k.GetName(),
+			Identifier: id,
+		}, true
 	}
 	if id := k.IdRegex1.FindString(keyword); id != "" {
-		return &miaosic.Media{
-			Meta: miaosic.MediaMeta{
-				Provider:   k.GetName(),
-				Identifier: id[2:],
-			},
-		}
+		return miaosic.MediaMeta{
+			Provider:   k.GetName(),
+			Identifier: id[2:],
+		}, true
 	}
-	return nil
+	return miaosic.MediaMeta{}, false
 }
 
-func (k *Kuwo) MatchPlaylist(uri string) *miaosic.Playlist {
-	var id string
-	id = k.PlaylistRegex0.FindString(uri)
-	if id != "" {
-		return &miaosic.Playlist{
-			Meta: miaosic.MediaMeta{k.GetName(), id},
-		}
-	}
-	id = k.PlaylistRegex1.FindString(uri)
-	if id != "" {
-		return &miaosic.Playlist{
-			Meta: miaosic.MediaMeta{k.GetName(), id[9:]},
-		}
-	}
-	return nil
-}
+//func (k *Kuwo) MatchPlaylist(uri string) *miaosic.Playlist {
+//	var id string
+//	id = k.PlaylistRegex0.FindString(uri)
+//	if id != "" {
+//		return &miaosic.Playlist{
+//			Meta: miaosic.MediaMeta{k.GetName(), id},
+//		}
+//	}
+//	id = k.PlaylistRegex1.FindString(uri)
+//	if id != "" {
+//		return &miaosic.Playlist{
+//			Meta: miaosic.MediaMeta{k.GetName(), id[9:]},
+//		}
+//	}
+//	return nil
+//}
 
 func (k *Kuwo) generateSecret(t, e string) string {
 	if e == "" {
@@ -161,128 +225,44 @@ func (k *Kuwo) initToken() {
 	//fmt.Println(searchCookie.Header(), err)
 }
 
-func (k *Kuwo) buildInfoApi() dphttp.ApiFunc[*miaosic.Media, *miaosic.Media] {
-	return deepcolor.CreateApiFunc(
-		k.requester,
-		func(media *miaosic.Media) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithQuery(
-				"http://www.kuwo.cn/api/www/music/musicInfo",
-				[]string{"mid"}, k.header)([]string{media.Meta.Identifier})
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, media *miaosic.Media) error {
-			if resp.Get("data.musicrid").String() == "" {
-				return miaosic.ErrorExternalApi
-			}
-			media.Title = html.UnescapeString(resp.Get("data.name").String())
-			media.Cover.Url = resp.Get("data.pic").String()
-			media.Artist = resp.Get("data.artist").String()
-			media.Album = resp.Get("data.album").String()
-			return nil
-		})
-}
-
-func (k *Kuwo) buildLyricApi() dphttp.ApiFunc[*miaosic.Media, *miaosic.Media] {
-	return deepcolor.CreateApiFunc(
-		k.requester,
-		func(media *miaosic.Media) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithQuery(
-				"http://m.kuwo.cn/newh5/singles/songinfoandlrc",
-				[]string{"musicId"}, k.header)([]string{media.Meta.Identifier})
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, media *miaosic.Media) error {
-			lrcs := make([]string, 0)
-			resp.Get("data.lrclist").ForEach(func(key, value gjson.Result) bool {
-				lrcs = append(lrcs, fmt.Sprintf("[00:%s]%s", value.Get("time").String(), value.Get("lineLyric").String()))
-
-				return true
-			})
-			media.Lyric = []miaosic.Lyrics{miaosic.ParseLyrics("default", strings.Join(lrcs, "\n"))}
-			return nil
-		})
-}
-
-func (k *Kuwo) buildSearchApi() dphttp.ApiFuncResult[string, []*miaosic.Media] {
-	return deepcolor.CreateApiResultFunc(
-		k.requester,
-		func(keyword string) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithQuery(
-				"http://www.kuwo.cn/api/www/search/searchMusicBykeyWord",
-				[]string{"key", "pn", "rn"}, k.header)([]string{keyword, "1", "64"})
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, result *[]*miaosic.Media) error {
-			resp.Get("data.list").ForEach(func(key, value gjson.Result) bool {
-				*result = append(*result, &miaosic.Media{
-					Title:  html.UnescapeString(value.Get("name").String()),
-					Cover:  miaosic.Picture{Url: value.Get("pic").String()},
-					Artist: value.Get("artist").String(),
-					Album:  value.Get("album").String(),
-					Meta: miaosic.MediaMeta{
-						Provider:   k.GetName(),
-						Identifier: value.Get("rid").String(),
-					},
-				})
-				return true
-			})
-			return nil
-		})
-}
-
-func (k *Kuwo) buildFileApi() dphttp.ApiFunc[*miaosic.Media, *miaosic.Media] {
-	return deepcolor.CreateApiFunc(
-		k.requester,
-		func(media *miaosic.Media) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithSingleQuery(
-				"http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url",
-				"rid", k.header)("MUSIC_" + media.Meta.Identifier)
-		},
-		deepcolor.ParserText,
-		func(resp string, media *miaosic.Media) error {
-			media.Url = resp
-			return nil
-		})
-}
-
-func (k *Kuwo) playlistApi(src *miaosic.Playlist, dst *miaosic.Playlist) error {
-	dst.Medias = make([]*miaosic.Media, 0)
-	api := deepcolor.CreateChainApiFunc(
-		k.requester,
-		func(page int) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithQuery(
-				"http://www.kuwo.cn/api/www/playlist/playListInfo",
-				[]string{"pid", "pn", "rn"}, k.header)([]string{src.Meta.Identifier, cast.ToString(page), "100"})
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, playlist *miaosic.Playlist) error {
-			resp.Get("data.musicList").ForEach(func(key, value gjson.Result) bool {
-				playlist.Medias = append(
-					playlist.Medias,
-					&miaosic.Media{
-						Title:  html.UnescapeString(value.Get("name").String()),
-						Artist: value.Get("artist").String(),
-						Cover:  miaosic.Picture{Url: value.Get("pic").String()},
-						Album:  value.Get("album").String(),
-						Meta: miaosic.MediaMeta{
-							Provider:   k.GetName(),
-							Identifier: value.Get("rid").String(),
-						},
-					})
-				return true
-			})
-			return nil
-		},
-		func(page int, resp *gjson.Result, playlist *miaosic.Playlist) (int, bool) {
-			if resp.Get("code").String() != "200" {
-				return page, false
-			}
-			cnt := int(resp.Get("data.total").Int())
-			if cnt <= page*100 {
-				return page, false
-			}
-			return page + 1, true
-		},
-	)
-	return api(1, dst)
-}
+//func (k *Kuwo) playlistApi(src *miaosic.Playlist, dst *miaosic.Playlist) error {
+//	dst.Medias = make([]*miaosic.Media, 0)
+//	api := deepcolor.CreateChainApiFunc(
+//		k.requester,
+//		func(page int) (*dphttp.Request, error) {
+//			return deepcolor.NewGetRequestWithQuery(
+//				"http://www.kuwo.cn/api/www/playlist/playListInfo",
+//				[]string{"pid", "pn", "rn"}, k.header)([]string{src.Meta.Identifier, cast.ToString(page), "100"})
+//		},
+//		deepcolor.ParserGJson,
+//		func(resp *gjson.Result, playlist *miaosic.Playlist) error {
+//			resp.Get("data.musicList").ForEach(func(key, value gjson.Result) bool {
+//				playlist.Medias = append(
+//					playlist.Medias,
+//					&miaosic.Media{
+//						Title:  html.UnescapeString(value.Get("name").String()),
+//						Artist: value.Get("artist").String(),
+//						Cover:  miaosic.Picture{Url: value.Get("pic").String()},
+//						Album:  value.Get("album").String(),
+//						Meta: miaosic.MediaMeta{
+//							Provider:   k.GetName(),
+//							Identifier: value.Get("rid").String(),
+//						},
+//					})
+//				return true
+//			})
+//			return nil
+//		},
+//		func(page int, resp *gjson.Result, playlist *miaosic.Playlist) (int, bool) {
+//			if resp.Get("code").String() != "200" {
+//				return page, false
+//			}
+//			cnt := int(resp.Get("data.total").Int())
+//			if cnt <= page*100 {
+//				return page, false
+//			}
+//			return page + 1, true
+//		},
+//	)
+//	return api(1, dst)
+//}

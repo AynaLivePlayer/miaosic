@@ -2,14 +2,14 @@ package local
 
 import (
 	"fmt"
+	"github.com/AynaLivePlayer/miaosic"
 	"github.com/sahilm/fuzzy"
-	"miaosic"
 	"sort"
 	"strings"
 	"testing"
 )
 
-var testData = []miaosic.Media{
+var testData = []miaosic.MediaInfo{
 	{Title: "Shape of You", Artist: "Ed Sheeran"},
 	{Title: "Lose Yourself", Artist: "Eminem"},
 	{Title: "Believer", Artist: "Imagine Dragons"},
@@ -39,8 +39,8 @@ var testData = []miaosic.Media{
 }
 
 func TestLocal_SearchTest1(t *testing.T) {
-	pattern := "王菲"
-	patterns := strings.Split(pattern, " ")
+	testPattern := "王菲"
+	patterns := strings.Split(testPattern, " ")
 	data := make([]*mediaRanking, 0)
 
 	for _, media := range testData {
@@ -71,12 +71,7 @@ func TestLocal_SearchTest1(t *testing.T) {
 }
 
 func TestLocal_SearchTest2(t *testing.T) {
-	data := make([]*miaosic.Media, 0)
-	for _, media := range testData {
-		m := media
-		data = append(data, &m)
-	}
-	for _, media := range RankMedia("怪物 reol", data) {
+	for _, media := range rankMedia("怪物 reol", &testData) {
 		fmt.Println(media)
 	}
 }

@@ -1,9 +1,9 @@
 package local
 
 import (
+	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
 	"github.com/sahilm/fuzzy"
-	"miaosic"
 	"os"
 	"path"
 	"path/filepath"
@@ -25,10 +25,9 @@ func getPlaylistNames(localdir string) []string {
 // readLocalPlaylist read files under a directory
 // and return a _LocalPlaylist object.
 // This function assume this directory exists
-func readLocalPlaylist(localdir string, playlist *miaosic.Playlist) error {
-	p1th := playlist.Meta.Identifier
-	playlist.Medias = make([]*miaosic.Media, 0)
-	fullPath := filepath.Join(localdir, p1th)
+func readLocalPlaylist(localdir string, playlist *localPlaylist) error {
+	playlist.medias = make([]localMedia, 0)
+	fullPath := filepath.Join(localdir, playlist.name)
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		return err
 	}
@@ -37,16 +36,18 @@ func readLocalPlaylist(localdir string, playlist *miaosic.Playlist) error {
 		// if item is a file, read file
 		if !item.IsDir() {
 			fn := item.Name()
-			media := miaosic.Media{
-				Meta: miaosic.MediaMeta{
-					Provider:   "local",
-					Identifier: path.Join(playlist.Meta.Identifier, fn),
+			media := localMedia{
+				info: miaosic.MediaInfo{
+					Meta: miaosic.MediaMeta{
+						Provider:   "local",
+						Identifier: path.Join(playlist.name, fn),
+					},
 				},
 			}
 			if readMediaFile(localdir, &media) != nil {
 				continue
 			}
-			playlist.Medias = append(playlist.Medias, &media)
+			playlist.medias = append(playlist.medias, media)
 		}
 	}
 	return nil
@@ -59,8 +60,8 @@ func _getOrDefault(s string, def string) string {
 	return s
 }
 
-func readMediaFile(localdir string, media *miaosic.Media) error {
-	p := path.Join(localdir, media.Meta.Identifier)
+func readMediaFile(localdir string, media *localMedia) error {
+	p := path.Join(localdir, media.info.Meta.Identifier)
 	f, err := os.Open(p)
 	if err != nil {
 		return err
@@ -70,29 +71,28 @@ func readMediaFile(localdir string, media *miaosic.Media) error {
 	if err != nil {
 		return err
 	}
-	media.Title = _getOrDefault(meta.Title(), filepath.Base(p))
-	media.Artist = _getOrDefault(meta.Artist(), "Unknown")
-	media.Album = _getOrDefault(meta.Album(), "Unknown")
-	media.Lyric = []miaosic.Lyrics{miaosic.ParseLyrics("default", meta.Lyrics())}
+	media.info.Title = _getOrDefault(meta.Title(), filepath.Base(p))
+	media.info.Artist = _getOrDefault(meta.Artist(), "Unknown")
+	media.info.Album = _getOrDefault(meta.Album(), "Unknown")
+	media.lyrics = []miaosic.Lyrics{miaosic.ParseLyrics("default", meta.Lyrics())}
 	if meta.Picture() != nil {
-		media.Cover.Data = meta.Picture().Data
+		media.info.Cover.Data = meta.Picture().Data
 	}
 	return nil
 }
 
 type mediaRanking struct {
-	media *miaosic.Media
+	media *miaosic.MediaInfo
 	score int
 }
 
-func RankMedia(keyword string, medias []*miaosic.Media) []*miaosic.Media {
+func rankMedia(keyword string, medias *[]miaosic.MediaInfo) []miaosic.MediaInfo {
 	patterns := strings.Split(keyword, " ")
 	data := make([]*mediaRanking, 0)
 
-	for _, media := range medias {
-		m := media
+	for i, _ := range *medias {
 		data = append(data, &mediaRanking{
-			media: m,
+			media: &(*medias)[i],
 			score: 0,
 		})
 	}
@@ -119,10 +119,10 @@ func RankMedia(keyword string, medias []*miaosic.Media) []*miaosic.Media {
 		return data[i].score > data[j].score
 	})
 
-	result := make([]*miaosic.Media, 0)
+	result := make([]miaosic.MediaInfo, 0)
 	for _, d := range data {
 		if d.score > 0 {
-			result = append(result, d.media)
+			result = append(result, *d.media)
 		}
 	}
 	return result

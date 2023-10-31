@@ -1,7 +1,7 @@
 package kuwo
 
-import "miaosic"
+import "github.com/AynaLivePlayer/miaosic"
 
 func init() {
-	miaosic.RegisterProvider(NewKuwo(miaosic.Requester))
+	miaosic.RegisterProvider(NewKuwo())
 }

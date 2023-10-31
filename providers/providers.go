@@ -1,54 +1,97 @@
 package providers
 
 import (
+	"github.com/AynaLivePlayer/miaosic"
 	"github.com/aynakeya/deepcolor/dphttp"
-	"miaosic"
 )
 
+type FileApiParam struct {
+	Meta    miaosic.MediaMeta
+	Quality miaosic.Quality
+}
+
+type MediaSearchParam struct {
+	Keyword  string
+	Page     int
+	PageSize int
+}
+
 type DeepcolorProvider struct {
-	InfoFunc     dphttp.ApiFunc[*miaosic.Media, *miaosic.Media]
-	FileFunc     dphttp.ApiFunc[*miaosic.Media, *miaosic.Media]
-	LyricFunc    dphttp.ApiFunc[*miaosic.Media, *miaosic.Media]
-	PlaylistFunc dphttp.ApiFunc[*miaosic.Playlist, *miaosic.Playlist]
-	SearchFunc   dphttp.ApiFuncResult[string, []*miaosic.Media]
+	InfoApi  dphttp.ApiResultFunc[miaosic.MediaMeta, miaosic.MediaInfo]
+	FileApi  dphttp.ApiResultFunc[FileApiParam, []miaosic.MediaUrl]
+	LyricApi dphttp.ApiResultFunc[miaosic.MediaMeta, []miaosic.Lyrics]
+	//PlaylistFunc dphttp.ApiFunc[*miaosic.Playlist, *miaosic.Playlist]
+	SearchApi dphttp.ApiResultFunc[MediaSearchParam, []miaosic.MediaInfo]
 }
 
-func (d *DeepcolorProvider) UpdatePlaylist(playlist *miaosic.Playlist) error {
-	if d.PlaylistFunc == nil {
-		return miaosic.ErrNotImplemented
-	}
-	return d.PlaylistFunc(playlist, playlist)
-}
-
-func (d *DeepcolorProvider) Search(keyword string) ([]*miaosic.Media, error) {
-	if d.SearchFunc == nil {
+func (p *DeepcolorProvider) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
+	if p.SearchApi == nil {
 		return nil, miaosic.ErrNotImplemented
 	}
-	//result := make([]*miaosic.Media, 0)
-	//err :=
-	//fmt.Println(result)
-	return d.SearchFunc(keyword)
+	return p.SearchApi(MediaSearchParam{Keyword: keyword, Page: page, PageSize: size})
 }
 
-func (d *DeepcolorProvider) UpdateMedia(media *miaosic.Media) error {
-	if d.InfoFunc == nil {
-		return miaosic.ErrNotImplemented
+func (p *DeepcolorProvider) GetMediaInfo(meta miaosic.MediaMeta) (miaosic.MediaInfo, error) {
+	if p.InfoApi == nil {
+		return miaosic.MediaInfo{}, miaosic.ErrNotImplemented
 	}
-	return d.InfoFunc(media, media)
+	val, err := p.InfoApi(meta)
+	if err != nil {
+		val.Meta = meta
+	}
+	return val, err
 }
 
-func (d *DeepcolorProvider) UpdateMediaUrl(media *miaosic.Media) error {
-	if d.FileFunc == nil {
-		return miaosic.ErrNotImplemented
+func (p *DeepcolorProvider) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+	if p.FileApi == nil {
+		return nil, miaosic.ErrNotImplemented
 	}
-	return d.FileFunc(media, media)
+	return p.FileApi(FileApiParam{Meta: meta, Quality: quality})
 }
 
-func (d *DeepcolorProvider) UpdateMediaLyric(media *miaosic.Media) error {
-	media.Lyric = nil
-	if d.LyricFunc == nil {
-		// if no lyric func, return nil
-		return nil
+func (p *DeepcolorProvider) GetMediaLyric(meta miaosic.MediaMeta) ([]miaosic.Lyrics, error) {
+	if p.LyricApi == nil {
+		return nil, miaosic.ErrNotImplemented
 	}
-	return d.LyricFunc(media, media)
+	return p.LyricApi(meta)
 }
+
+//func (d *DeepcolorProvider) UpdatePlaylist(playlist *miaosic.Playlist) error {
+//	if d.PlaylistFunc == nil {
+//		return miaosic.ErrNotImplemented
+//	}
+//	return d.PlaylistFunc(playlist, playlist)
+//}
+//
+//func (d *DeepcolorProvider) Search(keyword string) ([]*miaosic.Media, error) {
+//	if d.SearchFunc == nil {
+//		return nil, miaosic.ErrNotImplemented
+//	}
+//	//result := make([]*miaosic.Media, 0)
+//	//err :=
+//	//fmt.Println(result)
+//	return d.SearchFunc(keyword)
+//}
+//
+//func (d *DeepcolorProvider) UpdateMedia(media *miaosic.Media) error {
+//	if d.InfoFunc == nil {
+//		return miaosic.ErrNotImplemented
+//	}
+//	return d.InfoFunc(media, media)
+//}
+//
+//func (d *DeepcolorProvider) UpdateMediaUrl(media *miaosic.Media) error {
+//	if d.FileFunc == nil {
+//		return miaosic.ErrNotImplemented
+//	}
+//	return d.FileFunc(media, media)
+//}
+//
+//func (d *DeepcolorProvider) UpdateMediaLyric(media *miaosic.Media) error {
+//	media.Lyric = nil
+//	if d.LyricFunc == nil {
+//		// if no lyric func, return nil
+//		return nil
+//	}
+//	return d.LyricFunc(media, media)
+//}

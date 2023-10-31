@@ -7,6 +7,10 @@ import (
 
 var Requester dphttp.IRequester = deepcolor.NewRestyRequester()
 
+func init() {
+	deepcolor.SetDefaultRequester(Requester)
+}
+
 var _providers map[string]MediaProvider = make(map[string]MediaProvider)
 
 func RegisterProvider(provider MediaProvider) {

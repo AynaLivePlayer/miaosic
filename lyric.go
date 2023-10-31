@@ -2,6 +2,7 @@ package miaosic
 
 import (
 	"github.com/spf13/cast"
+	"math"
 	"regexp"
 	"sort"
 	"strings"
@@ -14,9 +15,23 @@ type LyricLine struct {
 	Lyric string
 }
 
+func (lr LyricLine) String() string {
+	// to lrc format
+	return "[" + cast.ToString(lr.Time/60) + ":" + cast.ToString(lr.Time-math.Floor(lr.Time)) + "]" + lr.Lyric
+}
+
 type Lyrics struct {
 	Lang    string
 	Content []LyricLine
+}
+
+func (l Lyrics) String() string {
+	var sb strings.Builder
+	for _, line := range l.Content {
+		sb.WriteString(line.String())
+		sb.WriteString("\n")
+	}
+	return sb.String()
 }
 
 func ParseLyrics(lang string, lyrics string) Lyrics {
