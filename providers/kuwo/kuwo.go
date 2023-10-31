@@ -36,7 +36,7 @@ func NewKuwo() *Kuwo {
 	kw.InfoApi = deepcolor.CreateApiResultFunc(
 		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
 			return deepcolor.NewGetRequestWithSingleQuery(
-				"http://www.kuwo.cn/api/www/music/musicInfo",
+				"http://www.kuwo.cn/api/www/music/musicInfo?httpsStatus=1",
 				"mid", meta.Identifier, kw.header)
 		},
 		deepcolor.ParserGJson,
@@ -83,24 +83,24 @@ func NewKuwo() *Kuwo {
 	kw.SearchApi = deepcolor.CreateApiResultFunc(
 		func(param providers.MediaSearchParam) (*dphttp.Request, error) {
 			return deepcolor.NewGetRequestWithQuery(
-				"http://www.kuwo.cn/api/www/search/searchMusicBykeyWord",
+				"http://www.kuwo.cn/search/searchMusicBykeyWord/searchMusicBykeyWord?vipver=1&client=kt&ft=music&cluster=0&strategy=2012&encoding=utf8&rformat=json&mobi=1&issubtitle=1&show_copyright_off=1",
 				map[string]any{
-					"key": param.Keyword,
-					"pn":  param.Page,
+					"all": param.Keyword,
+					"pn":  param.Page - 1,
 					"rn":  param.PageSize,
 				}, kw.header)
 		},
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, result *[]miaosic.MediaInfo) error {
-			resp.Get("data.list").ForEach(func(key, value gjson.Result) bool {
+			resp.Get("abslist").ForEach(func(key, value gjson.Result) bool {
 				*result = append(*result, miaosic.MediaInfo{
-					Title:  html.UnescapeString(value.Get("name").String()),
-					Cover:  miaosic.Picture{Url: value.Get("pic").String()},
-					Artist: value.Get("artist").String(),
-					Album:  value.Get("album").String(),
+					Title:  html.UnescapeString(value.Get("SONGNAME").String()),
+					Cover:  miaosic.Picture{Url: "https://img2.kuwo.cn/star/albumcover/" + value.Get("web_albumpic_short").String()},
+					Artist: value.Get("ARTIST").String(),
+					Album:  value.Get("ALBUM").String(),
 					Meta: miaosic.MediaMeta{
 						Provider:   kw.GetName(),
-						Identifier: value.Get("rid").String(),
+						Identifier: value.Get("DC_TARGETID").String(),
 					},
 				})
 				return true
@@ -109,6 +109,16 @@ func NewKuwo() *Kuwo {
 		})
 	//kw.PlaylistFunc = kw.playlistApi
 	return kw
+}
+
+func (k *Kuwo) initToken() {
+	k.header = map[string]string{
+		"accept": "application/json, text/plain, */*",
+		"cookie": "Hm_Iuvt_cdb524f42f0cer9b268e4v7y735ewrq2324=Ta28hMQmpTA2FCyzxSaDSXYfjF4wz7XB",
+		"secret": k.generateSecret("Ta28hMQmpTA2FCyzxSaDSXYfjF4wz7XB", "Hm_Iuvt_cdb524f42f0cer9b268e4v7y735ewrq2324"),
+	}
+	//searchCookie, err := k.requester.Get("http://kuwo.cn/search/list?key=any", nil)
+	//fmt.Println(searchCookie.Header(), err)
 }
 
 func (k *Kuwo) GetName() string {
@@ -178,8 +188,14 @@ func (k *Kuwo) generateSecret(t, e string) string {
 	for len(n) > 10 {
 		// stupid javascript
 		if len(n[10:]) > 19 {
-			num1 = 0
-			num2 = cast.ToInt64(n[19 : 19+8])
+			num1 = cast.ToInt64(n[10:11])
+			// 19+6+1
+			num2 = cast.ToInt64(n[19 : 19+6+1])
+			if num2%10 >= 5 {
+				num2 = num2/10 + 1
+			} else {
+				num2 = num2 / 10
+			}
 		} else {
 			num1 = cast.ToInt64(n[:10])
 			num2 = cast.ToInt64(n[10:])
@@ -213,16 +229,6 @@ func (k *Kuwo) generateSecret(t, e string) string {
 	}
 
 	return f + dHex
-}
-
-func (k *Kuwo) initToken() {
-	k.header = map[string]string{
-		"cookie":  "Hm_Iuvt_cdb524f42f0cer9b268e4v7y734w5esq24=TN7FsbxFGt8y2sTb4tGnzhpD7StNfiRM",
-		"secret":  k.generateSecret("TN7FsbxFGt8y2sTb4tGnzhpD7StNfiRM", "Hm_Iuvt_cdb524f42f0cer9b268e4v7y734w5esq24"),
-		"referer": "http://www.kuwo.cn/",
-	}
-	//searchCookie, err := k.requester.Get("http://kuwo.cn/search/list?key=any", nil)
-	//fmt.Println(searchCookie.Header(), err)
 }
 
 //func (k *Kuwo) playlistApi(src *miaosic.Playlist, dst *miaosic.Playlist) error {
