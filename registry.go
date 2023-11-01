@@ -21,6 +21,11 @@ func RegisterProvider(provider MediaProvider) {
 	_providers[provider.GetName()] = provider
 }
 
+func GetProvider(name string) (MediaProvider, bool) {
+	provider, ok := _providers[name]
+	return provider, ok
+}
+
 func ListAvailableProviders() []string {
 	var names []string
 	for name := range _providers {
