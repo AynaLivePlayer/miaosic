@@ -114,8 +114,8 @@ func NewKuwo() *Kuwo {
 func (k *Kuwo) initToken() {
 	k.header = map[string]string{
 		"accept": "application/json, text/plain, */*",
-		"cookie": "Hm_Iuvt_cdb524f42f0cer9b268e4v7y735ewrq2324=Ta28hMQmpTA2FCyzxSaDSXYfjF4wz7XB",
-		"secret": k.generateSecret("Ta28hMQmpTA2FCyzxSaDSXYfjF4wz7XB", "Hm_Iuvt_cdb524f42f0cer9b268e4v7y735ewrq2324"),
+		"cookie": "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324=Z3mc22m5FG2cezTznhS6YPNMPD5HnzSn",
+		"secret": k.generateSecret("Z3mc22m5FG2cezTznhS6YPNMPD5HnzSn", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"),
 	}
 	//searchCookie, err := k.requester.Get("http://kuwo.cn/search/list?key=any", nil)
 	//fmt.Println(searchCookie.Header(), err)
@@ -181,7 +181,7 @@ func (k *Kuwo) generateSecret(t, e string) string {
 	}
 
 	d := rand.Intn(100000000)
-	//d := 80378195
+	//d = 28886583
 	n += strconv.Itoa(d)
 
 	var num1, num2 int64
@@ -189,8 +189,8 @@ func (k *Kuwo) generateSecret(t, e string) string {
 		// stupid javascript
 		if len(n[10:]) > 19 {
 			num1 = cast.ToInt64(n[10:11])
-			// 19+6+1
-			num2 = cast.ToInt64(n[19 : 19+6+1])
+			// 19+8+1
+			num2 = cast.ToInt64(n[19 : 19+8+1])
 			if num2%10 >= 5 {
 				num2 = num2/10 + 1
 			} else {

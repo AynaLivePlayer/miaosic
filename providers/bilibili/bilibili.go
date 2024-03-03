@@ -1,7 +1,6 @@
 package bilibili
 
 import (
-	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/aynakeya/deepcolor"
@@ -54,7 +53,6 @@ func NewBilibili() *Bilibili {
 		},
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, media *[]miaosic.MediaUrl) error {
-			fmt.Println(resp.String())
 			if resp.Get("data.cdns.0").String() == "" {
 				return miaosic.ErrorExternalApi
 			}

@@ -1,8 +1,8 @@
 package kuwo
 
 import (
-	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -19,7 +19,7 @@ var api miaosic.MediaProvider = NewKuwo()
 func TestKuwo_Secret2(t *testing.T) {
 	// using 80378195 as d
 	t.Log(
-		api.(*Kuwo).generateSecret("c8JTmFjTQ3StRczHZTfAJ8hCPX3rtxzZ", "Hm_Iuvt_cdb524f42f0cer9b268e4v7y735ewrq2324"))
+		api.(*Kuwo).generateSecret("Z3mc22m5FG2cezTznhS6YPNMPD5HnzSn", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"))
 
 }
 
@@ -30,7 +30,7 @@ func TestKuwo_Search(t *testing.T) {
 	media := result[0]
 	urls, err := api.GetMediaUrl(media.Meta, miaosic.QualityAny)
 	require.NoError(t, err)
-	fmt.Println(urls)
+	assert.NotEmpty(t, urls)
 }
 
 func TestKuwo_GetMusicMeta(t *testing.T) {
@@ -50,7 +50,7 @@ func TestKuwo_GetMusic(t *testing.T) {
 	}
 	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err)
-	require.True(t, len(urls) > 0)
+	require.NotEmpty(t, urls)
 }
 
 func TestKuwo_UpdateMediaLyric(t *testing.T) {
