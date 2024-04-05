@@ -6,7 +6,7 @@ import (
 )
 
 type FileApiParam struct {
-	Meta    miaosic.MediaMeta
+	Meta    miaosic.MetaData
 	Quality miaosic.Quality
 }
 
@@ -17,9 +17,9 @@ type MediaSearchParam struct {
 }
 
 type DeepcolorProvider struct {
-	InfoApi  dphttp.ApiResultFunc[miaosic.MediaMeta, miaosic.MediaInfo]
+	InfoApi  dphttp.ApiResultFunc[miaosic.MetaData, miaosic.MediaInfo]
 	FileApi  dphttp.ApiResultFunc[FileApiParam, []miaosic.MediaUrl]
-	LyricApi dphttp.ApiResultFunc[miaosic.MediaMeta, []miaosic.Lyrics]
+	LyricApi dphttp.ApiResultFunc[miaosic.MetaData, []miaosic.Lyrics]
 	//PlaylistFunc dphttp.ApiFunc[*miaosic.Playlist, *miaosic.Playlist]
 	SearchApi dphttp.ApiResultFunc[MediaSearchParam, []miaosic.MediaInfo]
 }
@@ -31,7 +31,7 @@ func (p *DeepcolorProvider) Search(keyword string, page, size int) ([]miaosic.Me
 	return p.SearchApi(MediaSearchParam{Keyword: keyword, Page: page, PageSize: size})
 }
 
-func (p *DeepcolorProvider) GetMediaInfo(meta miaosic.MediaMeta) (miaosic.MediaInfo, error) {
+func (p *DeepcolorProvider) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 	if p.InfoApi == nil {
 		return miaosic.MediaInfo{}, miaosic.ErrNotImplemented
 	}
@@ -42,14 +42,14 @@ func (p *DeepcolorProvider) GetMediaInfo(meta miaosic.MediaMeta) (miaosic.MediaI
 	return val, err
 }
 
-func (p *DeepcolorProvider) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+func (p *DeepcolorProvider) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	if p.FileApi == nil {
 		return nil, miaosic.ErrNotImplemented
 	}
 	return p.FileApi(FileApiParam{Meta: meta, Quality: quality})
 }
 
-func (p *DeepcolorProvider) GetMediaLyric(meta miaosic.MediaMeta) ([]miaosic.Lyrics, error) {
+func (p *DeepcolorProvider) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	if p.LyricApi == nil {
 		return nil, miaosic.ErrNotImplemented
 	}

@@ -34,7 +34,7 @@ func NewKuwo() *Kuwo {
 	}
 	kw.initToken()
 	kw.InfoApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
+		func(meta miaosic.MetaData) (*dphttp.Request, error) {
 			return deepcolor.NewGetRequestWithSingleQuery(
 				"http://www.kuwo.cn/api/www/music/musicInfo?httpsStatus=1",
 				"mid", meta.Identifier, kw.header)
@@ -62,7 +62,7 @@ func NewKuwo() *Kuwo {
 			return nil
 		})
 	kw.LyricApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
+		func(meta miaosic.MetaData) (*dphttp.Request, error) {
 			return deepcolor.NewGetRequestWithSingleQuery(
 				"http://m.kuwo.cn/newh5/singles/songinfoandlrc",
 				"musicId", meta.Identifier, kw.header)
@@ -98,7 +98,7 @@ func NewKuwo() *Kuwo {
 					Cover:  miaosic.Picture{Url: "https://img2.kuwo.cn/star/albumcover/" + value.Get("web_albumpic_short").String()},
 					Artist: value.Get("ARTIST").String(),
 					Album:  value.Get("ALBUM").String(),
-					Meta: miaosic.MediaMeta{
+					Meta: miaosic.MetaData{
 						Provider:   kw.GetName(),
 						Identifier: value.Get("DC_TARGETID").String(),
 					},
@@ -125,20 +125,20 @@ func (k *Kuwo) GetName() string {
 	return "kuwo"
 }
 
-func (k *Kuwo) MatchMedia(keyword string) (miaosic.MediaMeta, bool) {
+func (k *Kuwo) MatchMedia(keyword string) (miaosic.MetaData, bool) {
 	if id := k.IdRegex0.FindString(keyword); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   k.GetName(),
 			Identifier: id,
 		}, true
 	}
 	if id := k.IdRegex1.FindString(keyword); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   k.GetName(),
 			Identifier: id[2:],
 		}, true
 	}
-	return miaosic.MediaMeta{}, false
+	return miaosic.MetaData{}, false
 }
 
 //func (k *Kuwo) MatchPlaylist(uri string) *miaosic.Playlist {
@@ -146,13 +146,13 @@ func (k *Kuwo) MatchMedia(keyword string) (miaosic.MediaMeta, bool) {
 //	id = k.PlaylistRegex0.FindString(uri)
 //	if id != "" {
 //		return &miaosic.Playlist{
-//			Meta: miaosic.MediaMeta{k.GetName(), id},
+//			Meta: miaosic.MetaData{k.GetName(), id},
 //		}
 //	}
 //	id = k.PlaylistRegex1.FindString(uri)
 //	if id != "" {
 //		return &miaosic.Playlist{
-//			Meta: miaosic.MediaMeta{k.GetName(), id[9:]},
+//			Meta: miaosic.MetaData{k.GetName(), id[9:]},
 //		}
 //	}
 //	return nil
@@ -250,7 +250,7 @@ func (k *Kuwo) generateSecret(t, e string) string {
 //						Artist: value.Get("artist").String(),
 //						Cover:  miaosic.Picture{Url: value.Get("pic").String()},
 //						Album:  value.Get("album").String(),
-//						Meta: miaosic.MediaMeta{
+//						Meta: miaosic.MetaData{
 //							Provider:   k.GetName(),
 //							Identifier: value.Get("rid").String(),
 //						},

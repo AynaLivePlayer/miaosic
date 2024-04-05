@@ -31,27 +31,27 @@ func NewNetease() *Netease {
 	}
 }
 
-func (n Netease) GetName() string {
+func (n *Netease) GetName() string {
 	return "netease"
 }
 
-func (n Netease) MatchMedia(uri string) (miaosic.MediaMeta, bool) {
+func (n *Netease) MatchMedia(uri string) (miaosic.MetaData, bool) {
 	if id := n.IdRegex0.FindString(uri); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   n.GetName(),
 			Identifier: id,
 		}, true
 	}
 	if id := n.IdRegex1.FindString(uri); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   n.GetName(),
 			Identifier: id[2:],
 		}, true
 	}
-	return miaosic.MediaMeta{}, false
+	return miaosic.MetaData{}, false
 }
 
-func (n Netease) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
+func (n *Netease) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
 	rawResult, err := neteaseApi.SearchSong(
 		n.ReqData,
 		neteaseApi.SearchSongConfig{
@@ -73,7 +73,7 @@ func (n Netease) Search(keyword string, page, size int) ([]miaosic.MediaInfo, er
 			Artist: strings.Join(artists, ","),
 			Cover:  miaosic.Picture{},
 			Album:  song.Album.Name,
-			Meta: miaosic.MediaMeta{
+			Meta: miaosic.MetaData{
 				Provider:   n.GetName(),
 				Identifier: strconv.Itoa(song.Id),
 			},
@@ -90,7 +90,7 @@ func _neteaseGetArtistNames(data neteaseTypes.SongDetailData) string {
 	return strings.Join(artists, ",")
 }
 
-func (n Netease) GetMediaInfo(meta miaosic.MediaMeta) (media miaosic.MediaInfo, err error) {
+func (n *Netease) GetMediaInfo(meta miaosic.MetaData) (media miaosic.MediaInfo, err error) {
 	result, err := neteaseApi.GetSongDetail(
 		n.ReqData,
 		[]int{cast.ToInt(meta.Identifier)})
@@ -107,7 +107,7 @@ func (n Netease) GetMediaInfo(meta miaosic.MediaMeta) (media miaosic.MediaInfo, 
 	return media, nil
 }
 
-func (n Netease) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	result, err := neteaseApi.GetSongURL(
 		n.ReqData,
 		neteaseApi.SongURLConfig{Ids: []int{cast.ToInt(meta.Identifier)}})
@@ -130,7 +130,7 @@ func (n Netease) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([
 	return urls, nil
 }
 
-func (n Netease) GetMediaLyric(meta miaosic.MediaMeta) ([]miaosic.Lyrics, error) {
+func (n *Netease) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	result, err := neteaseApi.GetSongLyric(n.ReqData, cast.ToInt(meta.Identifier))
 	if err != nil || result.Code != 200 {
 		return nil, miaosic.ErrorExternalApi

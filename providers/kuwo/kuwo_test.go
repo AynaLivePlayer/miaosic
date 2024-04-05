@@ -34,7 +34,7 @@ func TestKuwo_Search(t *testing.T) {
 }
 
 func TestKuwo_GetMusicMeta(t *testing.T) {
-	meta := miaosic.MediaMeta{
+	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "22804772",
 	}
@@ -44,7 +44,7 @@ func TestKuwo_GetMusicMeta(t *testing.T) {
 }
 
 func TestKuwo_GetMusic(t *testing.T) {
-	meta := miaosic.MediaMeta{
+	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "22804772",
 	}
@@ -54,7 +54,7 @@ func TestKuwo_GetMusic(t *testing.T) {
 }
 
 func TestKuwo_UpdateMediaLyric(t *testing.T) {
-	meta := miaosic.MediaMeta{
+	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "22804772",
 	}
@@ -66,7 +66,7 @@ func TestKuwo_UpdateMediaLyric(t *testing.T) {
 
 //func TestKuwo_GetPlaylist(t *testing.T) {
 //	playlist := miaosic.Playlist{
-//		Meta: miaosic.MediaMeta{
+//		Meta: miaosic.MetaData{
 //			Provider:   api.GetName(),
 //			Identifier: "2959147566",
 //		},

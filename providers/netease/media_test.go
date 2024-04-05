@@ -25,10 +25,11 @@ func TestNetease_Search2(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, urls)
 	require.True(t, strings.Contains(urls[0].Url, "http"))
+	t.Log(urls[0].Url)
 }
 
 func TestNetease_GetMusicMeta(t *testing.T) {
-	meta := miaosic.MediaMeta{
+	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "33516503",
 	}
@@ -39,7 +40,7 @@ func TestNetease_GetMusicMeta(t *testing.T) {
 }
 
 func TestNetease_UpdateMediaLyric(t *testing.T) {
-	meta := miaosic.MediaMeta{
+	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "33516503",
 	}

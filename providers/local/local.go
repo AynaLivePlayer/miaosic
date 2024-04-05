@@ -18,7 +18,7 @@ type localMedia struct {
 	lyrics  []miaosic.Lyrics
 }
 
-func (l *localPlaylist) GetMediaInfo(meta miaosic.MediaMeta) (miaosic.MediaInfo, error) {
+func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 	for _, m := range l.medias {
 		if m.info.Meta.Identifier == meta.Identifier {
 			return m.info, nil
@@ -46,7 +46,7 @@ func NewLocal(localdir string) *Local {
 	return l
 }
 
-func (l *Local) metaToId(meta miaosic.MediaMeta) (playlist string) {
+func (l *Local) metaToId(meta miaosic.MetaData) (playlist string) {
 	return strings.Split(meta.Identifier, "/")[0]
 }
 
@@ -54,11 +54,11 @@ func (l *Local) GetName() string {
 	return "local"
 }
 
-func (l *Local) MatchMedia(uri string) (miaosic.MediaMeta, bool) {
-	return miaosic.MediaMeta{}, false
+func (l *Local) MatchMedia(uri string) (miaosic.MetaData, bool) {
+	return miaosic.MetaData{}, false
 }
 
-func (l *Local) GetMediaInfo(meta miaosic.MediaMeta) (miaosic.MediaInfo, error) {
+func (l *Local) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 	if meta.Provider != l.GetName() {
 		return miaosic.MediaInfo{}, miaosic.ErrorDifferentProvider
 	}
@@ -69,7 +69,7 @@ func (l *Local) GetMediaInfo(meta miaosic.MediaMeta) (miaosic.MediaInfo, error) 
 	return playlist.GetMediaInfo(meta)
 }
 
-func (l *Local) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	info, err := l.GetMediaInfo(meta)
 	if err != nil {
 		return []miaosic.MediaUrl{}, err
@@ -80,7 +80,7 @@ func (l *Local) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([]
 	}}, nil
 }
 
-func (l *Local) GetMediaLyric(meta miaosic.MediaMeta) ([]miaosic.Lyrics, error) {
+func (l *Local) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	return []miaosic.Lyrics{}, miaosic.ErrNotImplemented
 }
 

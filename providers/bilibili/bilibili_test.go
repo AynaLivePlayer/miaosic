@@ -15,7 +15,7 @@ func TestBilibili_Search(t *testing.T) {
 }
 
 func TestBilibili_GetMusic(t *testing.T) {
-	meta := miaosic.MediaMeta{
+	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "1560601",
 	}

@@ -27,7 +27,7 @@ func NewBilibili() *Bilibili {
 		},
 	}
 	bili.InfoApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
+		func(meta miaosic.MetaData) (*dphttp.Request, error) {
 			return deepcolor.NewGetRequestWithSingleQuery(
 				"https://www.bilibili.com/audio/music-service-c/web/song/info",
 				"sid", meta.Identifier,
@@ -81,7 +81,7 @@ func NewBilibili() *Bilibili {
 					Title:  r.Get("title").String(),
 					Cover:  miaosic.Picture{Url: r.Get("cover").String()},
 					Artist: r.Get("author").String(),
-					Meta: miaosic.MediaMeta{
+					Meta: miaosic.MetaData{
 						Provider:   bili.GetName(),
 						Identifier: r.Get("id").String(),
 					},
@@ -97,18 +97,18 @@ func (b *Bilibili) GetName() string {
 	return "bilibili"
 }
 
-func (b *Bilibili) MatchMedia(keyword string) (miaosic.MediaMeta, bool) {
+func (b *Bilibili) MatchMedia(keyword string) (miaosic.MetaData, bool) {
 	if id := b.IdRegex0.FindString(keyword); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   b.GetName(),
 			Identifier: id,
 		}, true
 	}
 	if id := b.IdRegex1.FindString(keyword); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   b.GetName(),
 			Identifier: id[2:],
 		}, true
 	}
-	return miaosic.MediaMeta{}, false
+	return miaosic.MetaData{}, false
 }

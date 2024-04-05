@@ -38,7 +38,7 @@ func readLocalPlaylist(localdir string, playlist *localPlaylist) error {
 			fn := item.Name()
 			media := localMedia{
 				info: miaosic.MediaInfo{
-					Meta: miaosic.MediaMeta{
+					Meta: miaosic.MetaData{
 						Provider:   "local",
 						Identifier: path.Join(playlist.name, fn),
 					},

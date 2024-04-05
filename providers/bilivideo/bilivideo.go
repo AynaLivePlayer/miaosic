@@ -38,7 +38,7 @@ func NewBilibiliViedo() *BilibiliVideo {
 		header:    headers,
 	}
 	pvdr.InfoApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MediaMeta) (*dphttp.Request, error) {
+		func(meta miaosic.MetaData) (*dphttp.Request, error) {
 			return deepcolor.NewGetRequestWithQuery(
 				"https://api.bilibili.com/x/web-interface/view/detail?&aid=&jsonp=jsonp",
 				map[string]any{
@@ -93,7 +93,7 @@ func NewBilibiliViedo() *BilibiliVideo {
 					Title:  r.ReplaceAllString(value.Get("title").String(), ""),
 					Cover:  miaosic.Picture{Url: "https:" + value.Get("pic").String()},
 					Artist: value.Get("author").String(),
-					Meta: miaosic.MediaMeta{
+					Meta: miaosic.MetaData{
 						Provider:   pvdr.GetName(),
 						Identifier: value.Get("bvid").String(),
 					},
@@ -120,17 +120,17 @@ func (b *BilibiliVideo) GetName() string {
 	return "bilibili-video"
 }
 
-func (b *BilibiliVideo) MatchMedia(keyword string) (miaosic.MediaMeta, bool) {
+func (b *BilibiliVideo) MatchMedia(keyword string) (miaosic.MetaData, bool) {
 	if id := b.IdRegex.FindString(keyword); id != "" {
-		return miaosic.MediaMeta{
+		return miaosic.MetaData{
 			Provider:   b.GetName(),
 			Identifier: id,
 		}, true
 	}
-	return miaosic.MediaMeta{}, false
+	return miaosic.MetaData{}, false
 }
 
-func (b *BilibiliVideo) GetMediaUrl(meta miaosic.MediaMeta, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+func (b *BilibiliVideo) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	page := b.getPage(meta.Identifier) - 1
 	cids, err := b.cidApi(b.getBv(meta.Identifier))
 	if err != nil {

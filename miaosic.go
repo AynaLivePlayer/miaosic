@@ -9,19 +9,19 @@ func (p Picture) Exists() bool {
 	return p.Url != "" || p.Data != nil
 }
 
-type MediaMeta struct {
+type MetaData struct {
 	Provider   string
 	Identifier string
 }
 
-func NewMediaMeta(provider, identifier string) MediaMeta {
-	return MediaMeta{
+func NewMetaData(provider, identifier string) MetaData {
+	return MetaData{
 		Provider:   provider,
 		Identifier: identifier,
 	}
 }
 
-func (m MediaMeta) ID() string {
+func (m MetaData) ID() string {
 	return m.Provider + "_" + m.Identifier
 }
 
@@ -55,34 +55,53 @@ type MediaInfo struct {
 	Artist string
 	Cover  Picture
 	Album  string
-	Meta   MediaMeta
+	Meta   MetaData
 }
 
-//type Playlist struct {
-//	Title  string
-//	Medias []*Media
-//	Meta   MediaMeta
-//}
+type Playlist struct {
+	Title  string
+	Medias []*MediaInfo
+	Meta   MetaData
+}
 
 type MediaProvider interface {
 	// GetName returns the name of the provider.
 	GetName() string
-	// Search returns a list of MediaMeta.
+
+	// Search returns a list of MetaData.
 	Search(keyword string, page, size int) ([]MediaInfo, error)
-	// MatchMedia returns a MediaMeta if the uri is matched, otherwise nil.
-	MatchMedia(uri string) (MediaMeta, bool)
-	GetMediaInfo(meta MediaMeta) (MediaInfo, error)
-	GetMediaUrl(meta MediaMeta, quality Quality) ([]MediaUrl, error)
-	GetMediaLyric(meta MediaMeta) ([]Lyrics, error)
-	//// MatchPlaylist returns a MediaMeta if the uri is matched, otherwise nil.
-	//MatchPlaylist(uri string) MediaMeta
-	//GetPlaylist(meta MediaMeta) (*Playlist, error)
+
+	// ===== Media related =====
+
+	// MatchMedia returns a MetaData if the uri is matched, otherwise nil.
+	MatchMedia(uri string) (MetaData, bool)
+	GetMediaInfo(meta MetaData) (MediaInfo, error)
+	GetMediaUrl(meta MetaData, quality Quality) ([]MediaUrl, error)
+	GetMediaLyric(meta MetaData) ([]Lyrics, error)
+
+	// ===== Playlist related =====
+
+	// MatchPlaylist returns a MetaData if the uri is matched, otherwise nil.
+	MatchPlaylist(uri string) (MetaData, bool)
+	// GetPlaylist returns a Playlist, it fetches all data, so it might be slow.
+	GetPlaylist(meta MetaData) (*Playlist, error)
+}
+
+type QrLoginSession struct {
+	Url string
+	Key string
+}
+
+type QrLoginResult struct {
+	Success bool
+	Message string
 }
 
 type Loginable interface {
 	Login(username string, password string) error
-	QrLogin() string
-	QrLoginVerify() bool
+	Logout() error
+	QrLogin() (*QrLoginSession, error)
+	QrLoginVerify(qrlogin *QrLoginSession) (*QrLoginResult, error)
 	RestoreSession(session string) error
 	SaveSession() string
 }
