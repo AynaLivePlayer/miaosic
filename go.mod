@@ -2,11 +2,9 @@ module miaosic
 
 go 1.20
 
-replace github.com/aynakeya/deepcolor => ../../deepcolor
-
 require (
 	github.com/XiaoMengXinX/Music163Api-Go v0.1.30
-	github.com/aynakeya/deepcolor v1.0.1
+	github.com/aynakeya/deepcolor v1.0.2
 	github.com/dhowden/tag v0.0.0-20230630033851-978a0926ee25
 	github.com/jinzhu/copier v0.4.0
 	github.com/sahilm/fuzzy v0.1.0
