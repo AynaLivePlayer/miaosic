@@ -78,6 +78,10 @@ func readMediaFile(localdir string, media *localMedia) error {
 	if meta.Picture() != nil {
 		media.info.Cover.Data = meta.Picture().Data
 	}
+	data, err := os.ReadFile(filepath.Dir(p) + filepath.Base(p) + ".lrc")
+	if err == nil && len(data) > 0 {
+		media.lyrics = append(media.lyrics, miaosic.ParseLyrics("default", string(data)))
+	}
 	return nil
 }
 
