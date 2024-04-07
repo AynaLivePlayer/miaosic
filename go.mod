@@ -1,4 +1,4 @@
-module github.com/AynaLivePlayer/miaosic
+module miaosic
 
 go 1.20
 

@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"github.com/aynakeya/deepcolor/dphttp"
+	"miaosic"
 )
 
 type FileApiParam struct {

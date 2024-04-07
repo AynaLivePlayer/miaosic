@@ -1,7 +1,7 @@
 package local
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
+	"miaosic"
 	"os"
 	"path"
 	"strings"

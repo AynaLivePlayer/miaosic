@@ -1,9 +1,9 @@
 package kuwo
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"miaosic"
 	"testing"
 )
 

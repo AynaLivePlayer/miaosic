@@ -1,6 +1,6 @@
 package netease
 
-import "github.com/AynaLivePlayer/miaosic"
+import "miaosic"
 
 func (n *Netease) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 	return miaosic.MetaData{}, false

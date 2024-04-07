@@ -1,8 +1,8 @@
 package bilibili
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
+	"miaosic"
 	"testing"
 )
 

@@ -1,9 +1,9 @@
 package local
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
 	"github.com/sahilm/fuzzy"
+	"miaosic"
 	"os"
 	"path"
 	"path/filepath"

@@ -1,11 +1,11 @@
 package bilibili
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/tidwall/gjson"
+	"miaosic"
+	"miaosic/providers"
 	"regexp"
 )
 

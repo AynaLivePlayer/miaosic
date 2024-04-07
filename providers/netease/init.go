@@ -1,6 +1,6 @@
 package netease
 
-import "github.com/AynaLivePlayer/miaosic"
+import "miaosic"
 
 func init() {
 	miaosic.RegisterProvider(NewNetease())

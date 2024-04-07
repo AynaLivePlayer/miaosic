@@ -1,6 +1,6 @@
 package bilibili
 
-import "github.com/AynaLivePlayer/miaosic"
+import "miaosic"
 
 func (n *Bilibili) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 	return miaosic.MetaData{}, false
