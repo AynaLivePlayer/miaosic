@@ -25,7 +25,15 @@ type Lyrics struct {
 	Content []LyricLine
 }
 
-func (l Lyrics) String() string {
+type LyricContext struct {
+	Now   LyricLine
+	Index int
+	Total int
+	Prev  []LyricLine
+	Next  []LyricLine
+}
+
+func (l *Lyrics) String() string {
 	var sb strings.Builder
 	for _, line := range l.Content {
 		sb.WriteString(line.String())
@@ -70,7 +78,7 @@ func ParseLyrics(lang string, lyrics string) Lyrics {
 	return Lyrics{Lang: lang, Content: lrcs}
 }
 
-func (l Lyrics) FindIndex(time float64) int {
+func (l *Lyrics) FindIndex(time float64) int {
 	start := 0
 	end := len(l.Content) - 1
 	mid := (start + end) / 2
@@ -88,10 +96,31 @@ func (l Lyrics) FindIndex(time float64) int {
 	return -1
 }
 
-func (l Lyrics) Find(time float64) LyricLine {
+func (l *Lyrics) Find(time float64) LyricLine {
 	idx := l.FindIndex(time)
 	if idx == -1 {
 		return LyricLine{Time: 0, Lyric: ""}
 	}
 	return l.Content[idx]
+}
+
+func (l *Lyrics) FindContext(time float64, prev int, next int) *LyricContext {
+	prev = -prev
+	idx := l.FindIndex(time)
+	if idx == -1 {
+		return nil
+	}
+	if (idx + prev) < 0 {
+		prev = -idx
+	}
+	if (idx + 1 + next) > len(l.Content) {
+		next = len(l.Content) - idx - 1
+	}
+	return &LyricContext{
+		Now:   l.Content[idx],
+		Index: idx,
+		Total: len(l.Content),
+		Prev:  l.Content[idx+prev : idx],
+		Next:  l.Content[idx+1 : idx+1+next],
+	}
 }
