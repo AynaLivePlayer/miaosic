@@ -104,6 +104,7 @@ func (n *Netease) GetMediaInfo(meta miaosic.MetaData) (media miaosic.MediaInfo, 
 	media.Cover.Url = result.Songs[0].Al.PicUrl
 	media.Album = result.Songs[0].Al.Name
 	media.Artist = _neteaseGetArtistNames(result.Songs[0])
+	media.Meta = meta
 	return media, nil
 }
 
