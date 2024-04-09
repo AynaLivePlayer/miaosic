@@ -1,11 +1,11 @@
 package netease
 
 import (
+	"github.com/AynaLivePlayer/miaosic"
 	neteaseApi "github.com/XiaoMengXinX/Music163Api-Go/api"
 	neteaseTypes "github.com/XiaoMengXinX/Music163Api-Go/types"
 	neteaseUtil "github.com/XiaoMengXinX/Music163Api-Go/utils"
 	"github.com/spf13/cast"
-	"miaosic"
 	"regexp"
 	"strconv"
 	"strings"

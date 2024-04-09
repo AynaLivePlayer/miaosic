@@ -60,8 +60,25 @@ type MediaInfo struct {
 
 type Playlist struct {
 	Title  string
-	Medias []*MediaInfo
+	Medias []MediaInfo
 	Meta   MetaData
+}
+
+func (p *Playlist) DisplayName() string {
+	if p.Title != "" {
+		return p.Title
+	}
+	return p.Meta.ID()
+}
+
+func (p *Playlist) Copy() Playlist {
+	medias := make([]MediaInfo, len(p.Medias))
+	copy(medias, p.Medias)
+	return Playlist{
+		Title:  p.Title,
+		Medias: medias,
+		Meta:   p.Meta,
+	}
 }
 
 type MediaProvider interface {

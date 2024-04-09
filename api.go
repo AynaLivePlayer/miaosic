@@ -1,5 +1,29 @@
 package miaosic
 
+func SearchByProvider(provider string, keyword string, page, size int) ([]MediaInfo, error) {
+	p, ok := GetProvider(provider)
+	if !ok {
+		return nil, ErrorNoSuchProvider
+	}
+	return p.Search(keyword, page, size)
+}
+
+func GetMediaUrl(meta MetaData, quality Quality) ([]MediaUrl, error) {
+	provider, ok := GetProvider(meta.Provider)
+	if !ok {
+		return nil, ErrorNoSuchProvider
+	}
+	return provider.GetMediaUrl(meta, quality)
+}
+
+func GetMediaInfo(meta MetaData) (MediaInfo, error) {
+	provider, ok := GetProvider(meta.Provider)
+	if !ok {
+		return MediaInfo{}, ErrorNoSuchProvider
+	}
+	return provider.GetMediaInfo(meta)
+}
+
 //func GetPlaylist(meta *model.Meta) ([]*model.Media, error) {
 //	if v, ok := Providers[meta.Name]; ok {
 //		return v.GetPlaylist(meta)

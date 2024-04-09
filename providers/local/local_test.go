@@ -2,8 +2,8 @@ package local
 
 import (
 	"fmt"
+	"github.com/AynaLivePlayer/miaosic"
 	"github.com/sahilm/fuzzy"
-	"miaosic"
 	"sort"
 	"strings"
 	"testing"

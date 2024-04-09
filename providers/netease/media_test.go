@@ -1,8 +1,8 @@
 package netease
 
 import (
+	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
-	"miaosic"
 	"strings"
 	"testing"
 )

@@ -3,13 +3,13 @@ package bilivideo
 import (
 	"errors"
 	"fmt"
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
-	"miaosic"
-	"miaosic/providers"
 	"regexp"
 )
 

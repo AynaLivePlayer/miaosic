@@ -1,6 +1,6 @@
 package kuwo
 
-import "miaosic"
+import "github.com/AynaLivePlayer/miaosic"
 
 func (n *Kuwo) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 	return miaosic.MetaData{}, false

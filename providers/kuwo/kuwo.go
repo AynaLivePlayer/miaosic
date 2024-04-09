@@ -2,6 +2,8 @@ package kuwo
 
 import (
 	"fmt"
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/spf13/cast"
@@ -9,8 +11,6 @@ import (
 	"html"
 	"math"
 	"math/rand"
-	"miaosic"
-	"miaosic/providers"
 	"regexp"
 	"strconv"
 	"strings"

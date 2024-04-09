@@ -1,7 +1,7 @@
 package bilibili
 
 import (
-	"miaosic"
+	"github.com/AynaLivePlayer/miaosic"
 )
 
 func init() {
