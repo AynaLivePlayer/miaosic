@@ -24,6 +24,14 @@ func GetMediaInfo(meta MetaData) (MediaInfo, error) {
 	return provider.GetMediaInfo(meta)
 }
 
+func GetMediaLyric(meta MetaData) ([]Lyrics, error) {
+	provider, ok := GetProvider(meta.Provider)
+	if !ok {
+		return nil, ErrorNoSuchProvider
+	}
+	return provider.GetMediaLyric(meta)
+}
+
 //func GetPlaylist(meta *model.Meta) ([]*model.Media, error) {
 //	if v, ok := Providers[meta.Name]; ok {
 //		return v.GetPlaylist(meta)

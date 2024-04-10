@@ -36,9 +36,7 @@ func (p *DeepcolorProvider) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaIn
 		return miaosic.MediaInfo{}, miaosic.ErrNotImplemented
 	}
 	val, err := p.InfoApi(meta)
-	if err != nil {
-		val.Meta = meta
-	}
+	val.Meta = meta
 	return val, err
 }
 
