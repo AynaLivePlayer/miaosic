@@ -52,13 +52,49 @@ func NewKuwo() *Kuwo {
 		})
 	kw.FileApi = deepcolor.CreateApiResultFunc(
 		func(param providers.FileApiParam) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithSingleQuery(
-				"http://antiserver.kuwo.cn/anti.s?type=convert_url&format=mp3&response=url",
-				"rid", "MUSIC_"+param.Meta.Identifier, kw.header)
+			// 128kmp3、192kmp3、320kmp3、2000kflac
+			// https://github.com/QiuYaohong/kuwoMusicApi/issues/24
+			var quality string
+			switch param.Quality {
+			case miaosic.Quality128k:
+				quality = "128kmp3"
+			case miaosic.Quality192k:
+				quality = "192kmp3"
+			case miaosic.Quality256k:
+				quality = "256kmp3"
+			case miaosic.Quality320k:
+				quality = "320kmp3"
+			default:
+				quality = "320kmp3"
+			}
+			return deepcolor.NewGetRequestWithQuery(
+				"http://mobi.kuwo.cn/mobi.s?f=web&source=kwplayer_ar_1.1.9_oppo_118980_320.apk&type=convert_url_with_sign&br=320kmp3",
+				map[string]any{
+					"rid": param.Meta.Identifier,
+					"br":  quality,
+				}, kw.header)
 		},
-		deepcolor.ParserText,
-		func(resp string, urls *[]miaosic.MediaUrl) error {
-			*urls = []miaosic.MediaUrl{miaosic.NewMediaUrl(resp, miaosic.QualityUnk)}
+
+		deepcolor.ParserGJson,
+		func(resp *gjson.Result, urls *[]miaosic.MediaUrl) error {
+			fmt.Println(resp.String())
+			if resp.Get("data.url").String() == "" {
+				return miaosic.ErrorExternalApi
+			}
+			var quality miaosic.Quality
+			switch resp.Get("data.bitrate").Int() {
+			case 320:
+				quality = miaosic.Quality320k
+			case 256:
+				quality = miaosic.Quality256k
+			case 192:
+				quality = miaosic.Quality192k
+			case 128:
+				quality = miaosic.Quality128k
+			default:
+				quality = miaosic.QualityUnk
+			}
+			*urls = []miaosic.MediaUrl{miaosic.NewMediaUrl(resp.Get("data.url").String(), quality)}
 			return nil
 		})
 	kw.LyricApi = deepcolor.CreateApiResultFunc(
@@ -114,8 +150,8 @@ func NewKuwo() *Kuwo {
 func (k *Kuwo) initToken() {
 	k.header = map[string]string{
 		"accept": "application/json, text/plain, */*",
-		"cookie": "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324=Z3mc22m5FG2cezTznhS6YPNMPD5HnzSn",
-		"secret": k.generateSecret("Z3mc22m5FG2cezTznhS6YPNMPD5HnzSn", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"),
+		"cookie": "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324=jyFmNrCGQK2fZ2TYMwnFNzw5PwTBhMjs",
+		"secret": k.generateSecret("jyFmNrCGQK2fZ2TYMwnFNzw5PwTBhMjs", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"),
 	}
 	//searchCookie, err := k.requester.Get("http://kuwo.cn/search/list?key=any", nil)
 	//fmt.Println(searchCookie.Header(), err)

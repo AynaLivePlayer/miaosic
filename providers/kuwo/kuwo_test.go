@@ -51,6 +51,7 @@ func TestKuwo_GetMusic(t *testing.T) {
 	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err)
 	require.NotEmpty(t, urls)
+	t.Log(urls)
 }
 
 func TestKuwo_UpdateMediaLyric(t *testing.T) {
