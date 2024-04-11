@@ -77,7 +77,6 @@ func NewKuwo() *Kuwo {
 
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, urls *[]miaosic.MediaUrl) error {
-			fmt.Println(resp.String())
 			if resp.Get("data.url").String() == "" {
 				return miaosic.ErrorExternalApi
 			}
