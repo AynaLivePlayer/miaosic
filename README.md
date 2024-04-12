@@ -7,3 +7,4 @@ Media Provider Repository
 
 - netease music
 - loginable implementation
+- local music optimization, load media when call api.

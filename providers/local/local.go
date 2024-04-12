@@ -1,6 +1,7 @@
 package local
 
 import (
+	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"os"
 	"path"
@@ -81,7 +82,16 @@ func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 }
 
 func (l *Local) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
-	return []miaosic.Lyrics{}, miaosic.ErrNotImplemented
+	playlist, ok := l.playlists[l.metaToId(meta)]
+	if !ok {
+		return []miaosic.Lyrics{}, miaosic.ErrorInvalidMediaMeta
+	}
+	for _, m := range playlist.medias {
+		if m.info.Meta.Identifier == meta.Identifier {
+			return m.lyrics, nil
+		}
+	}
+	return []miaosic.Lyrics{}, miaosic.ErrorExternalApi
 }
 
 func (l *Local) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
@@ -89,15 +99,18 @@ func (l *Local) Search(keyword string, page, size int) ([]miaosic.MediaInfo, err
 	for _, p := range l.playlists {
 		for _, m := range p.medias {
 			allMedias = append(allMedias, m.info)
+			fmt.Println(m.info.Title)
 		}
 	}
 	rankedMedias := rankMedia(keyword, &allMedias)
 	total := len(rankedMedias)
-	if total < page*size {
+	startIdx := (page - 1) * size
+	endIdx := page * size
+	if startIdx >= total {
 		return []miaosic.MediaInfo{}, nil
 	}
-	if total >= page*size {
-		total = page * size
+	if endIdx >= total {
+		endIdx = total
 	}
-	return rankedMedias[(page-1)*size : total], nil
+	return rankedMedias[startIdx:endIdx], nil
 }
