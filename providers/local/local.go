@@ -39,7 +39,7 @@ func NewLocal(localdir string) *Local {
 	}
 	for _, n := range getPlaylistNames(localdir) {
 		playlist := &localPlaylist{name: n, medias: make([]localMedia, 0)}
-		if readLocalPlaylist(localdir, playlist) != nil {
+		if readLocalPlaylist(localdir, playlist) == nil {
 			l.playlists[playlist.name] = playlist
 		}
 	}

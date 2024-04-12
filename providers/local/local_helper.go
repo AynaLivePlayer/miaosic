@@ -44,7 +44,7 @@ func readLocalPlaylist(localdir string, playlist *localPlaylist) error {
 					},
 				},
 			}
-			if readMediaFile(localdir, &media) != nil {
+			if err := readMediaFile(localdir, &media); err != nil {
 				continue
 			}
 			playlist.medias = append(playlist.medias, media)
