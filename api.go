@@ -32,6 +32,22 @@ func GetMediaLyric(meta MetaData) ([]Lyrics, error) {
 	return provider.GetMediaLyric(meta)
 }
 
+func MatchPlaylistByProvider(provider string, uri string) (MetaData, bool) {
+	p, ok := GetProvider(provider)
+	if !ok {
+		return MetaData{}, false
+	}
+	return p.MatchPlaylist(uri)
+}
+
+func GetPlaylist(meta MetaData) (*Playlist, error) {
+	p, ok := GetProvider(meta.Provider)
+	if !ok {
+		return nil, ErrorNoSuchProvider
+	}
+	return p.GetPlaylist(meta)
+}
+
 //func GetPlaylist(meta *model.Meta) ([]*model.Media, error) {
 //	if v, ok := Providers[meta.Name]; ok {
 //		return v.GetPlaylist(meta)
