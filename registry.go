@@ -3,6 +3,7 @@ package miaosic
 import (
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
+	"sort"
 )
 
 var Requester dphttp.IRequester = deepcolor.NewRestyRequester()
@@ -31,5 +32,8 @@ func ListAvailableProviders() []string {
 	for name := range _providers {
 		names = append(names, name)
 	}
+	sort.Slice(names, func(i, j int) bool {
+		return names[i] < names[j]
+	})
 	return names
 }
