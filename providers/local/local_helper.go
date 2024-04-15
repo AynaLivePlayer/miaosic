@@ -44,7 +44,7 @@ func readLocalPlaylist(localdir string, playlist *localPlaylist) error {
 					},
 				},
 			}
-			if err := readMediaFile(localdir, &media); err != nil {
+			if err := readMediaFileInfo(localdir, &media); err != nil {
 				continue
 			}
 			playlist.medias = append(playlist.medias, media)
@@ -82,6 +82,23 @@ func readMediaFile(localdir string, media *localMedia) error {
 	if err == nil && len(data) > 0 {
 		media.lyrics = append(media.lyrics, miaosic.ParseLyrics("default", string(data)))
 	}
+	return nil
+}
+
+func readMediaFileInfo(localdir string, media *localMedia) error {
+	p := path.Join(localdir, media.info.Meta.Identifier)
+	f, err := os.Open(p)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	meta, err := tag.ReadFrom(f)
+	if err != nil {
+		return err
+	}
+	media.info.Title = _getOrDefault(meta.Title(), filepath.Base(p))
+	media.info.Artist = _getOrDefault(meta.Artist(), "Unknown")
+	media.info.Album = _getOrDefault(meta.Album(), "Unknown")
 	return nil
 }
 

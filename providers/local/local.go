@@ -1,7 +1,6 @@
 package local
 
 import (
-	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"os"
 	"path"
@@ -67,7 +66,14 @@ func (l *Local) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 	if !ok {
 		return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
 	}
-	return playlist.GetMediaInfo(meta)
+	for _, m := range playlist.medias {
+		if m.info.Meta.Identifier == meta.Identifier {
+			newM := m
+			_ = readMediaFile(l.localDir, &newM)
+			return newM.info, nil
+		}
+	}
+	return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
 }
 
 func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
@@ -88,7 +94,9 @@ func (l *Local) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	}
 	for _, m := range playlist.medias {
 		if m.info.Meta.Identifier == meta.Identifier {
-			return m.lyrics, nil
+			newM := m
+			_ = readMediaFile(l.localDir, &newM)
+			return newM.lyrics, nil
 		}
 	}
 	return []miaosic.Lyrics{}, miaosic.ErrorExternalApi
@@ -99,7 +107,6 @@ func (l *Local) Search(keyword string, page, size int) ([]miaosic.MediaInfo, err
 	for _, p := range l.playlists {
 		for _, m := range p.medias {
 			allMedias = append(allMedias, m.info)
-			fmt.Println(m.info.Title)
 		}
 	}
 	rankedMedias := rankMedia(keyword, &allMedias)
