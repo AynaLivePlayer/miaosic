@@ -49,12 +49,12 @@ func (n *Netease) QrLoginVerify(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLog
 	}, nil
 }
 
-func (n *Netease) Logout() {
+func (n *Netease) Logout() error {
 	n.ReqData.Cookies = []*http.Cookie{
 		{Name: "MUSIC_U", Value: ""},
 		{Name: "__csrf", Value: ""},
 	}
-	return
+	return nil
 }
 
 func (n *Netease) SaveSession() string {
