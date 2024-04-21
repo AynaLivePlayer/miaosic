@@ -13,6 +13,15 @@ func (n *Netease) Login(username string, password string) error {
 	return miaosic.ErrNotImplemented
 }
 
+func (n *Netease) IsLogin() bool {
+	status, err := neteaseApi.GetLoginStatus(n.ReqData)
+	if err != nil {
+		return false
+	}
+
+	return status.Account.Status == 0
+}
+
 func (n *Netease) QrLogin() (*miaosic.QrLoginSession, error) {
 	unikey, err := neteaseApi.GetQrUnikey(n.ReqData)
 	if err != nil {
