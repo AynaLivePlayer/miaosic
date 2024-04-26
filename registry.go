@@ -9,6 +9,7 @@ import (
 var Requester dphttp.IRequester = deepcolor.NewRestyRequester()
 
 func init() {
+	Requester.Config().Timeout = 3
 	deepcolor.SetDefaultRequester(Requester)
 }
 
