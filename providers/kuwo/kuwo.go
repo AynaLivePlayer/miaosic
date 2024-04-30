@@ -1,6 +1,7 @@
 package kuwo
 
 import (
+	"errors"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/providers"
@@ -77,6 +78,9 @@ func NewKuwo() *Kuwo {
 
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, urls *[]miaosic.MediaUrl) error {
+			if resp.Get("code").Int() != 200 {
+				return errors.New("miaosic: kuwo api error" + resp.Get("msg").String())
+			}
 			if resp.Get("data.url").String() == "" {
 				return miaosic.ErrorExternalApi
 			}

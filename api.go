@@ -57,6 +57,14 @@ func MatchMedia(keyword string) (MetaData, bool) {
 	return MetaData{}, false
 }
 
+func MatchMediaByProvider(provider string, uri string) (MetaData, bool) {
+	p, ok := GetProvider(provider)
+	if !ok {
+		return MetaData{}, false
+	}
+	return p.MatchMedia(uri)
+}
+
 //func GetPlaylist(meta *model.Meta) ([]*model.Media, error) {
 //	if v, ok := Providers[meta.Name]; ok {
 //		return v.GetPlaylist(meta)
