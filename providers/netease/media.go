@@ -118,6 +118,9 @@ func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([
 		n.ReqData,
 		neteaseApi.SongURLConfig{Ids: []int{cast.ToInt(meta.Identifier)}})
 	if err != nil || result.Code != 200 {
+		if err != nil {
+			return nil, err
+		}
 		return nil, miaosic.ErrorExternalApi
 	}
 	if len(result.Data) == 0 {
