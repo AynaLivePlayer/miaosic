@@ -84,7 +84,6 @@ func NewBilibiliViedo() *BilibiliVideo {
 		},
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, result *[]miaosic.MediaInfo) error {
-			fmt.Println(resp.String())
 			if resp.Get("code").String() != "0" {
 				return errors.New("failed to find required data")
 			}
