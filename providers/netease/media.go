@@ -28,8 +28,8 @@ func NewNetease() *Netease {
 					"118.88.88.88",
 				},
 			}},
-		IdRegex0:       regexp.MustCompile("^[0-9]+"),
-		IdRegex1:       regexp.MustCompile("^wy[0-9]+"),
+		IdRegex0:       regexp.MustCompile("^[0-9]+$"),
+		IdRegex1:       regexp.MustCompile("^wy[0-9]+$"),
 		PlaylistRegex0: regexp.MustCompile("^[0-9]+$"),
 		// https://music.163.com/playlist?id=2382819181&userid=95906480
 		PlaylistRegex1: regexp.MustCompile("playlist\\?id=[0-9]+"),

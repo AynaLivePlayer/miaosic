@@ -30,8 +30,8 @@ func NewKuwo() *Kuwo {
 	kw := &Kuwo{
 		PlaylistRegex0: regexp.MustCompile("[0-9]+"),
 		PlaylistRegex1: regexp.MustCompile("playlist/[0-9]+"),
-		IdRegex0:       regexp.MustCompile("^[0-9]+"),
-		IdRegex1:       regexp.MustCompile("^kw[0-9]+"),
+		IdRegex0:       regexp.MustCompile("^[0-9]+$"),
+		IdRegex1:       regexp.MustCompile("^kw[0-9]+$"),
 	}
 	kw.initToken()
 	kw.InfoApi = deepcolor.CreateApiResultFunc(

@@ -51,5 +51,6 @@ func TestBV_Search(t *testing.T) {
 	result, err := api.Search("家有女友op", 1, 20)
 	require.NoError(t, err, "Search Error")
 	require.NotEmpty(t, result, "Search Result Empty")
+	require.Equal(t, 20, len(result), "Search Result Length")
 	t.Log(result[0])
 }

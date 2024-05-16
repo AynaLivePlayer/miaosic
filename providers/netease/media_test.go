@@ -37,6 +37,7 @@ func TestNetease_GetMusicMeta(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "染", media.Title)
 	require.Equal(t, "Reol", media.Artist)
+	t.Log(media.Cover.Url)
 }
 
 func TestNetease_UpdateMediaLyric(t *testing.T) {
