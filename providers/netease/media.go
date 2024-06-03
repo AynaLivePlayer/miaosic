@@ -1,6 +1,7 @@
 package netease
 
 import (
+	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	neteaseApi "github.com/XiaoMengXinX/Music163Api-Go/api"
 	neteaseTypes "github.com/XiaoMengXinX/Music163Api-Go/types"
@@ -121,13 +122,13 @@ func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([
 		if err != nil {
 			return nil, err
 		}
-		return nil, miaosic.ErrorExternalApi
+		return nil, fmt.Errorf("miaosic (netease): error errcode %d", result.Code)
 	}
 	if len(result.Data) == 0 {
-		return nil, miaosic.ErrorExternalApi
+		return nil, fmt.Errorf("miaosic (netease): no result found")
 	}
 	if result.Data[0].Code != 200 {
-		return nil, miaosic.ErrorExternalApi
+		return nil, fmt.Errorf("miaosic (netease): netease code not equal to 200")
 	}
 	urls := make([]miaosic.MediaUrl, 0)
 	for _, u := range result.Data {
