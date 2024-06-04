@@ -1,7 +1,10 @@
 package kuwo
 
 import (
+	"encoding/base64"
+	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
+	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -74,6 +77,18 @@ func TestKuwo_UpdateMediaLyric(t *testing.T) {
 	require.NoError(t, err)
 	// Not sure
 	require.NotEmpty(t, len(lyrics) >= 0)
+}
+
+// https://github.com/cnsilvan/UnblockNeteaseMusic/blob/master/provider/kuwo/kuwo.go
+// http://anymatch.kuwo.cn/mobi.s?f=kwxs&q=
+// http://mobi.kuwo.cn/mobi.s?f=kuwo&q=
+func TestKuwo_Url(t *testing.T) {
+	format := "mp3"
+	br := "&br=128kmp3"
+	url := "http://mobi.kuwo.cn/mobi.s?f=kuwo&q=" + base64.StdEncoding.EncodeToString(Encrypt([]byte("source=jiakong&p2p=1&sig=1476474&type=convert_url_with_sign&format="+format+"&rid="+"MP3_146301111"+br)))
+	result, err := resty.New().R().Get(url)
+	fmt.Println(err)
+	fmt.Println(result.String())
 }
 
 //func TestKuwo_GetPlaylist(t *testing.T) {
