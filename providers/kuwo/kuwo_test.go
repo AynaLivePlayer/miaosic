@@ -32,6 +32,7 @@ func TestKuwo_Search(t *testing.T) {
 	require.NotEmpty(t, result)
 	media := result[0]
 	urls, err := api.GetMediaUrl(media.Meta, miaosic.QualityAny)
+	t.Log(media)
 	require.NoError(t, err)
 	assert.NotEmpty(t, urls)
 }
