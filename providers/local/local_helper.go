@@ -3,12 +3,9 @@ package local
 import (
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
-	"github.com/sahilm/fuzzy"
 	"os"
 	"path"
 	"path/filepath"
-	"sort"
-	"strings"
 )
 
 func getPlaylistNames(localdir string) []string {
@@ -74,13 +71,8 @@ func readMediaFile(localdir string, media *localMedia) error {
 	media.info.Title = _getOrDefault(meta.Title(), filepath.Base(p))
 	media.info.Artist = _getOrDefault(meta.Artist(), "Unknown")
 	media.info.Album = _getOrDefault(meta.Album(), "Unknown")
-	media.lyrics = []miaosic.Lyrics{miaosic.ParseLyrics("default", meta.Lyrics())}
 	if meta.Picture() != nil {
 		media.info.Cover.Data = meta.Picture().Data
-	}
-	data, err := os.ReadFile(filepath.Dir(p) + filepath.Base(p) + ".lrc")
-	if err == nil && len(data) > 0 {
-		media.lyrics = append(media.lyrics, miaosic.ParseLyrics("default", string(data)))
 	}
 	return nil
 }
@@ -102,49 +94,24 @@ func readMediaFileInfo(localdir string, media *localMedia) error {
 	return nil
 }
 
-type mediaRanking struct {
-	media *miaosic.MediaInfo
-	score int
-}
-
-func rankMedia(keyword string, medias *[]miaosic.MediaInfo) []miaosic.MediaInfo {
-	patterns := strings.Split(keyword, " ")
-	data := make([]*mediaRanking, 0)
-
-	for i, _ := range *medias {
-		data = append(data, &mediaRanking{
-			media: &(*medias)[i],
-			score: 0,
-		})
+func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
+	lyrics := make([]miaosic.Lyrics, 0)
+	p := path.Join(localdir, meta.Identifier)
+	data, err := os.ReadFile(filepath.Dir(p) + filepath.Base(p) + ".lrc")
+	if err == nil && len(data) > 0 {
+		lyrics = append(lyrics, miaosic.ParseLyrics("default", string(data)))
 	}
-
-	for _, pattern := range patterns {
-		pattern = strings.ToLower(pattern)
-		dataStr := make([]string, 0)
-		for _, d := range data {
-			dataStr = append(dataStr, strings.ToLower(d.media.Title))
-		}
-		for _, match := range fuzzy.Find(pattern, dataStr) {
-			data[match.Index].score += match.Score
-		}
-		dataStr = make([]string, 0)
-		for _, d := range data {
-			dataStr = append(dataStr, strings.ToLower(d.media.Artist))
-		}
-		for _, match := range fuzzy.Find(pattern, dataStr) {
-			data[match.Index].score += match.Score
+	f, err := os.Open(p)
+	defer f.Close()
+	if err == nil {
+		mMeta, err := tag.ReadFrom(f)
+		if err == nil {
+			name := "builtin"
+			if len(lyrics) == 0 {
+				name = "default"
+			}
+			lyrics = append(lyrics, miaosic.ParseLyrics(name, mMeta.Lyrics()))
 		}
 	}
-
-	sort.Slice(data, func(i, j int) bool {
-		return data[i].score > data[j].score
-	})
-
-	result := make([]miaosic.MediaInfo, 0)
-	for _, d := range data {
-		if d.score > 0 {
-			result = append(result, *d.media)
-		}
-	}
-	return result
+	return lyrics, nil
 }

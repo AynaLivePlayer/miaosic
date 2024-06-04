@@ -15,7 +15,6 @@ type localPlaylist struct {
 type localMedia struct {
 	info    miaosic.MediaInfo
 	quality miaosic.Quality
-	lyrics  []miaosic.Lyrics
 }
 
 func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
@@ -88,16 +87,12 @@ func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 }
 
 func (l *Local) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
-	playlist, ok := l.playlists[l.metaToId(meta)]
-	if !ok {
-		return []miaosic.Lyrics{}, miaosic.ErrorInvalidMediaMeta
+	lyrics, err := readLyric(l.localDir, meta)
+	if err == nil {
+		return lyrics, nil
 	}
-	for _, m := range playlist.medias {
-		if m.info.Meta.Identifier == meta.Identifier {
-			newM := m
-			_ = readMediaFile(l.localDir, &newM)
-			return newM.lyrics, nil
-		}
+	if len(lyrics) == 0 {
+		return lyrics, miaosic.ErrorExternalApi
 	}
 	return []miaosic.Lyrics{}, miaosic.ErrorExternalApi
 }
