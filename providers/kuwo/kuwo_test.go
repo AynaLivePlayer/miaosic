@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/go-resty/resty/v2"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"strings"
 	"testing"
 )
 
@@ -31,10 +31,12 @@ func TestKuwo_Search(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, result)
 	media := result[0]
+	require.True(t, strings.Contains(media.Artist, "周杰伦"))
 	urls, err := api.GetMediaUrl(media.Meta, miaosic.QualityAny)
-	t.Log(media)
 	require.NoError(t, err)
-	assert.NotEmpty(t, urls)
+	require.NotEmpty(t, urls)
+	require.True(t, strings.HasPrefix(urls[0].Url, "http"))
+	t.Log(urls)
 }
 
 func TestKuwo_GetMusicMeta(t *testing.T) {
@@ -66,6 +68,7 @@ func TestKuwo_GetMusic2(t *testing.T) {
 	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err)
 	require.NotEmpty(t, urls)
+
 	t.Log(urls)
 }
 
@@ -77,7 +80,8 @@ func TestKuwo_UpdateMediaLyric(t *testing.T) {
 	lyrics, err := api.GetMediaLyric(meta)
 	require.NoError(t, err)
 	// Not sure
-	require.NotEmpty(t, len(lyrics) >= 0)
+	require.NotEmpty(t, lyrics)
+	require.NotEmpty(t, lyrics[0].Content)
 }
 
 // https://github.com/cnsilvan/UnblockNeteaseMusic/blob/master/provider/kuwo/kuwo.go

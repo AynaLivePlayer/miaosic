@@ -17,11 +17,11 @@ type MediaSearchParam struct {
 }
 
 type DeepcolorProvider struct {
-	InfoApi  dphttp.ApiResultFunc[miaosic.MetaData, miaosic.MediaInfo]
-	FileApi  dphttp.ApiResultFunc[FileApiParam, []miaosic.MediaUrl]
-	LyricApi dphttp.ApiResultFunc[miaosic.MetaData, []miaosic.Lyrics]
-	//PlaylistFunc dphttp.ApiFunc[*miaosic.Playlist, *miaosic.Playlist]
+	InfoApi   dphttp.ApiResultFunc[miaosic.MetaData, miaosic.MediaInfo]
+	FileApi   dphttp.ApiResultFunc[FileApiParam, []miaosic.MediaUrl]
+	LyricApi  dphttp.ApiResultFunc[miaosic.MetaData, []miaosic.Lyrics]
 	SearchApi dphttp.ApiResultFunc[MediaSearchParam, []miaosic.MediaInfo]
+	//PlaylistFunc dphttp.ApiFunc[*miaosic.Playlist, *miaosic.Playlist]
 }
 
 func (p *DeepcolorProvider) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
