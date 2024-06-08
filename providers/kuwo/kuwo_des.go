@@ -178,11 +178,16 @@ func des64(subkeys []*big.Int, data *big.Int) *big.Int {
 	return new(big.Int).Set(out)
 }
 func Encrypt(src []byte) []byte {
-	by := encrypt(src, SECRET_KEY)
+	by := encrypt(src, SECRET_KEY, DesModeEncrypt)
 	return by
 }
 
-func encrypt(src []byte, key []byte) []byte {
+func Decrypt(src []byte) []byte {
+	by := encrypt(src, SECRET_KEY, DesModeDecrypt)
+	return by
+}
+
+func encrypt(src []byte, key []byte, mode int) []byte {
 	// long keyl = Long.valueOf(new String(key));
 	var keyl = GetBigInt()
 	srcLength := len(src)
@@ -195,7 +200,7 @@ func encrypt(src []byte, key []byte) []byte {
 	num := srcLength / 8
 	// 子密钥（临时数据）
 	subKey := make([]*big.Int, 16)
-	desSubKeys(keyl, subKey, DesModeEncrypt)
+	desSubKeys(keyl, subKey, mode)
 	// 加密
 	pSrc := make([]int64, num)
 	for i := 0; i < num; i++ {
@@ -222,6 +227,9 @@ func encrypt(src []byte, key []byte) []byte {
 		tail64 = tail64 | (int64(szTail[i]) << (i * 8))
 	}
 	// 计算多出的那一位(最后一位)
+	if mode == DesModeEncrypt {
+		pEncyrpt[num] = des64(subKey, new(big.Int).SetInt64(tail64))
+	}
 	pEncyrpt[num] = des64(subKey, new(big.Int).SetInt64(tail64))
 	result := make([]byte, len(pEncyrpt)*8)
 	temp := 0

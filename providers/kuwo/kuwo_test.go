@@ -90,10 +90,17 @@ func TestKuwo_UpdateMediaLyric(t *testing.T) {
 func TestKuwo_Url(t *testing.T) {
 	format := "mp3"
 	br := "&br=128kmp3"
-	url := "http://mobi.kuwo.cn/mobi.s?f=kuwo&q=" + base64.StdEncoding.EncodeToString(Encrypt([]byte("source=jiakong&p2p=1&sig=1476474&type=convert_url_with_sign&format="+format+"&rid="+"MP3_146301111"+br)))
+	url := "http://mobi.kuwo.cn/mobi.s?f=kuwo&q=" + base64.StdEncoding.EncodeToString(Encrypt([]byte("source=jiakong&p2p=1&sig=1476474&type=convert_url_with_sign&format="+format+"&rid="+"6536164"+br)))
 	result, err := resty.New().R().Get(url)
 	fmt.Println(err)
 	fmt.Println(result.String())
+}
+
+func TestKuwo_DesDecCar(t *testing.T) {
+	val1, err := base64.StdEncoding.DecodeString("SDKKpI8vPfYgGOuiJY59ORPMmQiJwGtTXjJnpTvbydlLBbpGpxOyPanBLVzmnGLEbvEhGUivlfk6/DRBilOnYJ/zo+t+uVzVF5SuP6kG3ZMboakBAjmBlIEfemTDoZusyEy1hwNfyU9ACdwuDd1xj+Omz5jwsMecM8KBfD2xgXTFCySu79pWgsgqO9c3DBQehRhuLv8hLwiRAcRvUqhAdkAJ3C4N3XGP46bPmPCwx5y2adXW/K99z2E2n2bX+Fwd7F5kr8GzYjs+m1cDKK/3UssN5FLLHmCpbcE7ApaxXPY2bO0SK/8oCwxgPfEl9Swc2YE8zMcYSyRV19DEJyBJpvzde/6FZby28Q9KO2VwECfcLGahkpEAOjcm/MEBhpVqIsFl/t7NA1Cf/7Gi0WVTEuefTJDi9G8FVNYOFhVDu8UiHPatg0jUSIEwl9S0rHFHO0NBly+8Km8qPTerlPCHHlaDXiRl3tqu8JSCHrTZxwBndGye2vsoIEFaff3OPjFaehMikV/2w+SZMDZbczJgYWNBs8cZqCgNw6lHm0HVrEa+3gGSSgpBVxy+D/upkhrDolCK22oMz006iuyKWyIGqlx+wA+obm6jRxWUWfD8IW0See8CrNBUtQAQ5h96J1FkeW1B/gZnaqA=")
+	require.NoError(t, err)
+	val := Decrypt(val1)
+	fmt.Println(string(val))
 }
 
 //func TestKuwo_GetPlaylist(t *testing.T) {
