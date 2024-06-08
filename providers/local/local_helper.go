@@ -1,11 +1,13 @@
 package local
 
 import (
+	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 func getPlaylistNames(localdir string) []string {
@@ -97,7 +99,8 @@ func readMediaFileInfo(localdir string, media *localMedia) error {
 func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	lyrics := make([]miaosic.Lyrics, 0)
 	p := path.Join(localdir, meta.Identifier)
-	data, err := os.ReadFile(filepath.Dir(p) + filepath.Base(p) + ".lrc")
+
+	data, err := os.ReadFile(path.Join(filepath.Dir(p), strings.TrimSuffix(filepath.Base(p), filepath.Ext(p))+".lrc"))
 	if err == nil && len(data) > 0 {
 		lyrics = append(lyrics, miaosic.ParseLyrics("default", string(data)))
 	}
@@ -113,5 +116,6 @@ func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error)
 			lyrics = append(lyrics, miaosic.ParseLyrics(name, mMeta.Lyrics()))
 		}
 	}
+	fmt.Println(lyrics)
 	return lyrics, nil
 }
