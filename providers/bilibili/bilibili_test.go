@@ -24,4 +24,6 @@ func TestBilibili_GetMusic(t *testing.T) {
 	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err)
 	require.NotEmpty(t, urls)
+	require.NotEmpty(t, urls[0].Url)
+	t.Log(urls[0].Url)
 }

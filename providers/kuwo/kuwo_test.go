@@ -63,7 +63,7 @@ func TestKuwo_GetMusic(t *testing.T) {
 func TestKuwo_GetMusic2(t *testing.T) {
 	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
-		Identifier: "6510096",
+		Identifier: "6536164",
 	}
 	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err)
