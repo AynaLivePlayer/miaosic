@@ -97,10 +97,15 @@ func TestKuwo_Url(t *testing.T) {
 }
 
 func TestKuwo_DesDecCar(t *testing.T) {
-	val1, err := base64.StdEncoding.DecodeString("SDKKpI8vPfYgGOuiJY59ORPMmQiJwGtTXjJnpTvbydlLBbpGpxOyPanBLVzmnGLEbvEhGUivlfk6/DRBilOnYJ/zo+t+uVzVF5SuP6kG3ZMboakBAjmBlIEfemTDoZusyEy1hwNfyU9ACdwuDd1xj+Omz5jwsMecM8KBfD2xgXTFCySu79pWgsgqO9c3DBQehRhuLv8hLwiRAcRvUqhAdkAJ3C4N3XGP46bPmPCwx5y2adXW/K99z2E2n2bX+Fwd7F5kr8GzYjs+m1cDKK/3UssN5FLLHmCpbcE7ApaxXPY2bO0SK/8oCwxgPfEl9Swc2YE8zMcYSyRV19DEJyBJpvzde/6FZby28Q9KO2VwECfcLGahkpEAOjcm/MEBhpVqIsFl/t7NA1Cf/7Gi0WVTEuefTJDi9G8FVNYOFhVDu8UiHPatg0jUSIEwl9S0rHFHO0NBly+8Km8qPTerlPCHHlaDXiRl3tqu8JSCHrTZxwBndGye2vsoIEFaff3OPjFaehMikV/2w+SZMDZbczJgYWNBs8cZqCgNw6lHm0HVrEa+3gGSSgpBVxy+D/upkhrDolCK22oMz006iuyKWyIGqlx+wA+obm6jRxWUWfD8IW0See8CrNBUtQAQ5h96J1FkeW1B/gZnaqA=")
+	val1, err := base64.StdEncoding.DecodeString("OCGk_ECm6dOb_DJVKzHfKPA1qKoKNG8sz1IhuP8pKvw1GoN4mZM6LYX9iFdgEkJfYXBrNAGAe2eDwZLE3Vxpj41B5q0s6z8RLqmUPkXZ2CRyBvo9VR6-IF6-4iGy9C_D3hIBq4xG2abDBxpjMepcJE_O2VVWGhdtXrNBuPjZqBGxggi2M-Xx8_fHHPe3gIXXfhJMle10Orc3B8KbuxSI2s8xhcwOqQJM2MAuK6VXJpl_jBrQZyi1sFxJVx4DRXGCntYe6V0I3RVG5V4Z3rUZBIMq0N9NMYDrVFIEE5RyBJfaPUS4SVRQzdY5aUxFEhnZHlR3QLgLvCwaO74tZQANy3VnigEuuBANVHcZm5bpWByEZgH_urF_q9mhOZEFfqirxvcNhQxNiI_Ng6Yr8lcZLZCecrz0lZ-yc2o3C1DmB_OIwFWSdxU6K6OcpBOnzOrdR6O74I_NPcDA7Jy1PsBQ5WHwbI73nMhsnw97300cte2WDbqzn2d45ZkHjftAP2MSmSxHUNacNp2zgHOfakTF8hbVxHfMzzNt6vOIl6TAMOAxs7awl9ZDLMPAEeKQhAykMr6aa1FhHmk2xNEh9Uvkx4VvHUCGvYxUr0uS2iYZq7KLoHvIWoOm9Cr8_S25OjwiNzTiayfCdIcFDOCkiPVIIT-eEtWfxFoQu-iwfb0DF31TijGSvGsxnGorZSbbd1XpnMm3tmyFRdfL1_15K7erWFh2GLu-_TASR1wXUoIkgLhSyMyk-x_xdT-DhXyTGZqWTTVs8Rl52QGDE62WTesahmn7Phl7MKnpKz0LgsD2Q0-zsd4c6AzQ8DQfN0YliqOa")
 	require.NoError(t, err)
 	val := Decrypt(val1)
 	fmt.Println(string(val))
+}
+
+func TestKuwo_CarApi(t *testing.T) {
+	//query := "user=C_APK_guanwang_e1699663d6664f1bbd04faad379c290c&randomcode=e1699663d6664f1bbd04faad379c290c&prod=kwplayercar_ar_6.3.9.40&corp=kuwo&vipver=8.5.5.0&source=kwplayercar_ar_6.3.9.40_C_APK_guanwang.apk&packageName=cn.kuwo.kwmusiccar&packageSign=c29a5a2ca235f326a4800335ecafbf31ace2d0a2&q36=f8cc39a5ae393f56713d909010001d418608&loginUid=&loginSid=&carModel=null&type=lyric&songname=%E7%AC%AC%E5%85%AD%E6%84%9F&artist=Reol&filename=&duration=191000&req=2&lrcx=1&rid=146301111&encode=utf8"
+	//query := "vipver=8.5.5.0&source=kwplayercar_ar_6.3.9.40_C_APK_guanwang.apk&loginUid=&loginSid=&carModel=null&type=lyric&songname=%E7%AC%AC%E5%85%AD%E6%84%9F&artist=Reol&filename=&duration=191000&req=2&lrcx=1&rid=146301111&encode=utf8"
 }
 
 //func TestKuwo_GetPlaylist(t *testing.T) {
