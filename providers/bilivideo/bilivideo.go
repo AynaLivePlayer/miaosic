@@ -15,6 +15,13 @@ import (
 
 var _ = (miaosic.MediaProvider)(&BilibiliVideo{})
 
+var biliHeaders = map[string]string{
+	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+	"Referer":    "https://www.bilibili.com/",
+	"Origin":     "https://www.bilibili.com",
+	"Cookie":     "buvid3=40BA0253-7F5C-06C1-12CE-871EC008DB2096426infoc;",
+}
+
 type BilibiliVideo struct {
 	providers.DeepcolorProvider
 	BVRegex   *regexp.Regexp
@@ -25,17 +32,11 @@ type BilibiliVideo struct {
 }
 
 func NewBilibiliViedo() *BilibiliVideo {
-	headers := map[string]string{
-		"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-		"Referer":    "https://www.bilibili.com/",
-		"Origin":     "https://www.bilibili.com",
-		"Cookie":     "buvid3=40BA0253-7F5C-06C1-12CE-871EC008DB2096426infoc;",
-	}
 	pvdr := &BilibiliVideo{
 		BVRegex:   regexp.MustCompile("^BV[0-9A-Za-z]+"),
 		IdRegex:   regexp.MustCompile("^BV[0-9A-Za-z]+(\\?p=[0-9]+)?"),
 		PageRegex: regexp.MustCompile("p=[0-9]+"),
-		header:    headers,
+		header:    biliHeaders,
 	}
 	pvdr.InfoApi = deepcolor.CreateApiResultFunc(
 		func(meta miaosic.MetaData) (*dphttp.Request, error) {
