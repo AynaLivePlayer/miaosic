@@ -34,6 +34,8 @@ const (
 	Quality192k Quality = "192k"
 	Quality256k Quality = "256k"
 	Quality320k Quality = "320k"
+	QualityHQ   Quality = "hq"
+	QualitySQ   Quality = "sq"
 )
 
 type MediaUrl struct {
