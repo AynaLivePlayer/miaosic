@@ -49,3 +49,25 @@ func TestBilibiliVideo_GetPlaylist_Fav(t *testing.T) {
 	require.Equal(t, "AMV", playlist.Title)
 	require.GreaterOrEqual(t, len(playlist.Medias), 12)
 }
+
+func TestBilibiliVideo_GetPlaylist_Fav2(t *testing.T) {
+	uri := "https://space.bilibili.com/691501918/favlist?fid=3159910518&ftype=create"
+	meta, ok := api.MatchPlaylist(uri)
+	require.True(t, ok)
+	playlist, err := api.GetPlaylist(meta)
+	require.NoError(t, err)
+	require.Equal(t, meta, playlist.Meta)
+	require.Equal(t, "歌", playlist.Title)
+	require.GreaterOrEqual(t, len(playlist.Medias), 26)
+}
+
+func TestBilibiliVideo_GetPlaylist_Fav3(t *testing.T) {
+	uri := "https://space.bilibili.com/10003632/favlist?fid=56376932&ftype=create"
+	meta, ok := api.MatchPlaylist(uri)
+	require.True(t, ok)
+	playlist, err := api.GetPlaylist(meta)
+	require.NoError(t, err)
+	require.Equal(t, meta, playlist.Meta)
+	require.Equal(t, "Vocaloid Music", playlist.Title)
+	require.Equal(t, len(playlist.Medias), 881)
+}

@@ -63,13 +63,13 @@ func (n *BilibiliVideo) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 var collApi = "https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=0&season_id=%s&sort_reverse=false&page_num=%d&page_size=30"
 
 func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, error) {
-	page := 1
+
 	playlist := &miaosic.Playlist{
 		Meta:   miaosic.MetaData{n.GetName(), makePlaylistId(playlistCollection, id)},
 		Medias: make([]miaosic.MediaInfo, 0),
 		Title:  "Bilibili Collection " + id,
 	}
-	for {
+	for page := 1; page <= 50; page++ {
 		uri := fmt.Sprintf(collApi, id, page)
 		resp, err := miaosic.Requester.Get(uri, biliHeaders)
 		if err != nil {
@@ -99,7 +99,6 @@ func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, err
 			})
 			return true
 		})
-		page++
 	}
 	if len(playlist.Medias) == 0 {
 		return nil, errors.New("bilivideo: no media found")
@@ -110,13 +109,12 @@ func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, err
 var favApi = "https://api.bilibili.com/x/v3/fav/resource/list?media_id=%s&pn=%d&ps=20&keyword=&order=mtime&type=0&tid=0&platform=web"
 
 func (n *BilibiliVideo) getFavPlaylist(id string) (*miaosic.Playlist, error) {
-	page := 1
 	playlist := &miaosic.Playlist{
 		Meta:   miaosic.MetaData{n.GetName(), makePlaylistId(playlistFav, id)},
 		Medias: make([]miaosic.MediaInfo, 0),
 		Title:  "Bilibili Fav " + id,
 	}
-	for {
+	for page := 1; page < 51; page++ {
 		uri := fmt.Sprintf(favApi, id, page)
 		resp, err := miaosic.Requester.Get(uri, biliHeaders)
 		if err != nil {
