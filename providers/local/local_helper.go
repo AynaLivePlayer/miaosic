@@ -4,11 +4,58 @@ import (
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
+	"github.com/saintfish/chardet"
+	"golang.org/x/text/encoding"
+	"golang.org/x/text/encoding/charmap"
+	"golang.org/x/text/encoding/japanese"
+	"golang.org/x/text/encoding/korean"
+	"golang.org/x/text/encoding/simplifiedchinese"
+	"golang.org/x/text/encoding/traditionalchinese"
+	"golang.org/x/text/encoding/unicode"
+	"golang.org/x/text/transform"
 	"os"
 	"path"
 	"path/filepath"
 	"strings"
 )
+
+var detector = chardet.NewTextDetector()
+
+func getEncoding(name string) encoding.Encoding {
+	switch name {
+	case "UTF-8":
+		return unicode.UTF8
+	case "ISO-8859-1":
+		return charmap.ISO8859_1
+	case "Windows-1252":
+		return charmap.Windows1252
+	case "GBK":
+		return simplifiedchinese.GBK
+	case "GB-18030":
+		return simplifiedchinese.GB18030
+	case "Big5":
+		return traditionalchinese.Big5
+	case "Shift_JIS":
+		return japanese.ShiftJIS
+	case "EUC-KR":
+		return korean.EUCKR
+	default:
+		return unicode.UTF8
+	}
+}
+
+func decodeBytes(data []byte, enc encoding.Encoding) (string, error) {
+	// Create a transformer that will decode the bytes
+	transformer := enc.NewDecoder()
+
+	// Transform the bytes into a string
+	result, _, err := transform.String(transformer, string(data))
+	if err != nil {
+		return "", err
+	}
+
+	return result, nil
+}
 
 func getPlaylistNames(localdir string) []string {
 	names := make([]string, 0)
@@ -102,7 +149,14 @@ func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error)
 
 	data, err := os.ReadFile(path.Join(filepath.Dir(p), strings.TrimSuffix(filepath.Base(p), filepath.Ext(p))+".lrc"))
 	if err == nil && len(data) > 0 {
-		lyrics = append(lyrics, miaosic.ParseLyrics("default", string(data)))
+		detectedChar, err := detector.DetectBest(data)
+		if err != nil {
+			detectedChar.Charset = "UTF-8"
+		}
+		datastr, _ := decodeBytes(data, getEncoding(detectedChar.Charset))
+		if datastr != "" {
+			lyrics = append(lyrics, miaosic.ParseLyrics("default", datastr))
+		}
 	}
 	f, err := os.Open(p)
 	defer f.Close()
