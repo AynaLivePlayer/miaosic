@@ -18,8 +18,7 @@ func (n *Netease) IsLogin() bool {
 	if err != nil {
 		return false
 	}
-
-	return status.Account.Status == 0
+	return status.Account.Id != 0
 }
 
 func (n *Netease) QrLogin() (*miaosic.QrLoginSession, error) {
