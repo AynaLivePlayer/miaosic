@@ -2,9 +2,13 @@ module github.com/AynaLivePlayer/miaosic
 
 go 1.20
 
+//replace (
+//	github.com/aynakeya/deepcolor => ../../../deepcolor
+//)
+
 require (
 	github.com/XiaoMengXinX/Music163Api-Go v0.1.30
-	github.com/aynakeya/deepcolor v1.0.2
+	github.com/aynakeya/deepcolor v1.0.3
 	github.com/dhowden/tag v0.0.0-20230630033851-978a0926ee25
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/jinzhu/copier v0.4.0
