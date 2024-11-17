@@ -22,7 +22,7 @@ const (
 
 // signKey encrypts the given parameters and returns the encrypted sign.
 func signKey(appid string, hash, mid, userid string) string {
-	data := hash + "57ae12eb6890223e355ccfcb74edf70d" + appidLite + mid + userid
+	data := hash + "57ae12eb6890223e355ccfcb74edf70d" + appid + mid + userid
 	return getMD5Hash(data)
 }
 

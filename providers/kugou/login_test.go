@@ -26,21 +26,21 @@ func TestSignatureWebParams(t *testing.T) {
 }
 
 func TestKugou_QrLogin(t *testing.T) {
-	login, err := api.QrLogin()
+	login, err := testApi.QrLogin()
 	require.NoError(t, err, "QrLogin Error")
 	require.NotEmpty(t, login, "QrLogin Result Empty")
 	t.Log(login)
 }
 
 func TestKugou_QrLoginVerify(t *testing.T) {
-	result, err := api.QrLoginVerify(&miaosic.QrLoginSession{
-		Url: "https://h5.kugou.com/apps/loginQRCode/html/index.html?qrcode=5526fbc7576759da17bdeea9f02269323116",
-		Key: "5526fbc7576759da17bdeea9f02269323116",
+	result, err := testApi.QrLoginVerify(&miaosic.QrLoginSession{
+		Url: "https://h5.kugou.com/apps/loginQRCode/html/index.html?qrcode=764ed534812fc1438e165b0d794b91121005",
+		Key: "764ed534812fc1438e165b0d794b91121005",
 	})
 	require.NoError(t, err, "QrLoginVerify Error")
 	require.NotEmpty(t, result, "QrLoginVerify Result Empty")
 	t.Log(result)
 	if result.Success {
-		t.Log("session", api.SaveSession())
+		t.Log("session", testApi.SaveSession())
 	}
 }

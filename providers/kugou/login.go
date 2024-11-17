@@ -15,7 +15,8 @@ func (n *Kugou) Login(username string, password string) error {
 }
 
 func (n *Kugou) IsLogin() bool {
-	return false
+	_, ok := n.cookie["token"]
+	return ok
 }
 
 func (n *Kugou) QrLogin() (*miaosic.QrLoginSession, error) {
