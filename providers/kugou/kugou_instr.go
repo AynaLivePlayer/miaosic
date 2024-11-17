@@ -9,7 +9,7 @@ type KugouInstrumental struct {
 }
 
 func (k *KugouInstrumental) GetName() string {
-	return "Kugou-Instr"
+	return "kugou-instr"
 }
 
 func (k *KugouInstrumental) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
