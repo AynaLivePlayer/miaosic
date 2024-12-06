@@ -8,10 +8,20 @@ import (
 	"github.com/aynakeya/deepcolor"
 	"github.com/tidwall/gjson"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
+var playlistIdRegex = regexp.MustCompile(`gcid_(\w+)`)
+
 func (k *Kugou) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
+	if playlistIdRegex.MatchString(uri) {
+		matches := playlistIdRegex.FindStringSubmatch(uri)
+		return miaosic.MetaData{
+			Provider:   k.GetName(),
+			Identifier: matches[1],
+		}, true
+	}
 	return miaosic.MetaData{}, false
 }
 
