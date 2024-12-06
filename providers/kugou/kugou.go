@@ -213,7 +213,7 @@ func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(urlResp.String())
+	//fmt.Println(urlResp.String())
 	urlJson := gjson.ParseBytes(urlResp.Body())
 	if !urlJson.Get("url").Exists() {
 		return nil, errors.New("kugou: failed to get media url, might be vip only")

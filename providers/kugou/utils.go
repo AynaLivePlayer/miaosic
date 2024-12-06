@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -24,12 +24,6 @@ const (
 func signKey(appid string, hash, mid, userid string) string {
 	data := hash + "57ae12eb6890223e355ccfcb74edf70d" + appid + mid + userid
 	return getMD5Hash(data)
-}
-
-// signParamsKey encrypts the given parameters and returns the encrypted signParams.
-func signParamsKey(data int64) string {
-	dataStr := appid + signkeyLite + clientver + strconv.FormatInt(data, 10)
-	return getMD5Hash(dataStr)
 }
 
 func signatureAndroidParams(signkey string, params map[string]interface{}, data string) string {
@@ -56,7 +50,7 @@ func signatureAndroidParams(signkey string, params map[string]interface{}, data 
 	}
 
 	// Generate the MD5 hash
-	hash := md5.Sum([]byte(signkey + paramsString.String() + string(data) + signkey))
+	hash := md5.Sum([]byte(signkey + paramsString.String() + data + signkey))
 	return hex.EncodeToString(hash[:])
 }
 
@@ -80,4 +74,25 @@ func signatureWebParams(params map[string]string) string {
 	// Generate the MD5 hash
 	hash := md5.Sum([]byte(str + paramsString.String() + str))
 	return strings.ToUpper(hex.EncodeToString(hash[:]))
+}
+
+func (k *Kugou) addAndroidParams(params map[string]interface{}, data string) map[string]interface{} {
+	if token, ok := k.cookie["token"]; ok {
+		params["token"] = token
+	} else {
+		params["token"] = ""
+	}
+	if userId, ok := k.cookie["userid"]; ok {
+		params["userid"] = userId
+	} else {
+		params["userid"] = "0"
+	}
+	params["appid"] = k.appid
+	params["clientver"] = k.clientver
+	params["dfid"] = k.dfid
+	params["mid"] = getMD5Hash(k.dfid)
+	params["uuid"] = getMD5Hash(k.dfid)
+	params["clienttime"] = fmt.Sprintf("%d", time.Now().Unix())
+	params["signature"] = signatureAndroidParams(k.signkey, params, data)
+	return params
 }
