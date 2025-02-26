@@ -19,7 +19,7 @@ func (k *Kugou) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 		matches := playlistIdRegex.FindStringSubmatch(uri)
 		return miaosic.MetaData{
 			Provider:   k.GetName(),
-			Identifier: matches[1],
+			Identifier: "gcid_" + matches[1],
 		}, true
 	}
 	return miaosic.MetaData{}, false
@@ -98,6 +98,7 @@ func (k *Kugou) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) {
 		"pagesize":             100,
 		"plat":                 1,
 		"type":                 1,
+		"mode":                 1,
 		"area_code":            1,
 		"begin_idx":            0,
 	}
@@ -121,6 +122,7 @@ func (k *Kugou) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) {
 		if err != nil {
 			return nil, err
 		}
+		//fmt.Println(resp.String())
 		result := gjson.ParseBytes(resp.Body())
 		if result.Get("error_code").Int() != 0 {
 			return nil, errors.New("kugou: get playlist error")

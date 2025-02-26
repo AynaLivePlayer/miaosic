@@ -19,7 +19,7 @@ var biliHeaders = map[string]string{
 	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
 	"Referer":    "https://www.bilibili.com/",
 	"Origin":     "https://www.bilibili.com",
-	"Cookie":     "buvid3=40BA0253-7F5C-06C1-12CE-871EC008DB2096426infoc;",
+	"Cookie":     "buvid4=86D528BE-0AAA-CF7C-563F-48F8E3F133C140694-023050121-%2FNOyo2MbSyMEJ2aIs%2BzIdw%3D%3D",
 }
 
 type BilibiliVideo struct {
@@ -88,6 +88,7 @@ func NewBilibiliViedo() *BilibiliVideo {
 			if resp.Get("code").String() != "0" {
 				return errors.New("failed to find required data")
 			}
+			fmt.Println(resp.String())
 			r := regexp.MustCompile("</?em[^>]*>")
 			resp.Get("data.result").ForEach(func(key, value gjson.Result) bool {
 				*result = append(*result, miaosic.MediaInfo{
