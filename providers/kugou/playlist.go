@@ -111,18 +111,16 @@ func (k *Kugou) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) {
 	if err == nil {
 		playlist.Title = title
 	}
-	for page := 0; page < 25; page++ {
+	for page := 0; page < 30; page++ {
 		params["begin_idx"] = page * 100
-		params = k.addAndroidParams(params, "")
 		urlReq, _ := deepcolor.NewGetRequestWithQuery(
 			"https://gateway.kugou.com/pubsongs/v2/get_other_list_file_nofilt",
-			params, map[string]string{},
+			k.addAndroidParams(params, ""), map[string]string{},
 		)
 		resp, err := miaosic.Requester.HTTP(urlReq)
 		if err != nil {
 			return nil, err
 		}
-		//fmt.Println(resp.String())
 		result := gjson.ParseBytes(resp.Body())
 		if result.Get("error_code").Int() != 0 {
 			return nil, errors.New("kugou: get playlist error")

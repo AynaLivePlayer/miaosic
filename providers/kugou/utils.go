@@ -76,7 +76,11 @@ func signatureWebParams(params map[string]string) string {
 	return strings.ToUpper(hex.EncodeToString(hash[:]))
 }
 
-func (k *Kugou) addAndroidParams(params map[string]interface{}, data string) map[string]interface{} {
+func (k *Kugou) addAndroidParams(origParams map[string]interface{}, data string) map[string]interface{} {
+	params := make(map[string]interface{})
+	for key, value := range origParams {
+		params[key] = value
+	}
 	if token, ok := k.cookie["token"]; ok {
 		params["token"] = token
 	} else {
