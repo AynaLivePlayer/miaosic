@@ -32,11 +32,11 @@ func TestBV_Regex(t *testing.T) {
 }
 
 func TestBV_GetMusicMeta2(t *testing.T) {
-	meta, ok := api.MatchMedia("BV1a3411T7TH")
+	meta, ok := api.MatchMedia("BV1Ax4y1Y7et")
 	require.True(t, ok)
 	media, err := api.GetMediaInfo(meta)
 	require.NoError(t, err)
-	require.Equal(t, "沈默沈默", media.Artist)
+	require.Equal(t, "言力华", media.Artist)
 }
 
 func TestBV_GetMusic2(t *testing.T) {

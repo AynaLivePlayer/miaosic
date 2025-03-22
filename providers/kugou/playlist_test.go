@@ -7,6 +7,13 @@ import (
 	"testing"
 )
 
+func TestKugou_MatchPlaylist(t *testing.T) {
+	meta, ok := testApi.MatchPlaylist("https://m.kugou.com/share/zlist.html?listid=2&type=0&uid=600319512&share_type=collect&from=pcCode&_t=795992922&global_collection_id=collection_3_600319512_2_0&sign=b10567180f66e08d562f5142a8f1f8b9&chain=5JZSIebEnV3")
+	require.True(t, ok)
+	require.Equal(t, "collection_3_600319512_2_0", meta.Identifier)
+
+}
+
 func TestKugou_GetPlaylist(t *testing.T) {
 	// less than 100 song
 	playlist, err := testApi.GetPlaylist(miaosic.MetaData{Identifier: "gcid_3zfcfgjcz31z06d"})
@@ -19,6 +26,13 @@ func TestKugou_GetPlaylist_2(t *testing.T) {
 	playlist, err := testApi.GetPlaylist(miaosic.MetaData{Identifier: "gcid_3ztimg53zoz09e"})
 	require.NoError(t, err)
 	fmt.Println(playlist.Medias)
+}
+
+func TestKugou_GetPlaylist_3(t *testing.T) {
+	playlist, err := testApi.GetPlaylist(miaosic.MetaData{Identifier: "collection_3_600319512_2_0"})
+	require.NoError(t, err)
+	fmt.Println(playlist.Medias)
+	fmt.Println(playlist.Title)
 }
 
 func TestKugou_getCollectionId(t *testing.T) {

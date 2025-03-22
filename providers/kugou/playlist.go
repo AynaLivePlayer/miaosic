@@ -14,6 +14,10 @@ import (
 
 var playlistIdRegex = regexp.MustCompile(`gcid_(\w+)`)
 
+// collection_3_600319512_2_0
+// collection_3_806499027_106_0
+var playlistIdRegex2 = regexp.MustCompile(`collection_\d+_\d+_\d+_\d+`)
+
 func (k *Kugou) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 	if playlistIdRegex.MatchString(uri) {
 		matches := playlistIdRegex.FindStringSubmatch(uri)
@@ -22,14 +26,24 @@ func (k *Kugou) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 			Identifier: "gcid_" + matches[1],
 		}, true
 	}
+	if playlistIdRegex2.MatchString(uri) {
+		matches := playlistIdRegex2.FindStringSubmatch(uri)
+		return miaosic.MetaData{
+			Provider:   k.GetName(),
+			Identifier: matches[0],
+		}, true
+	}
 	return miaosic.MetaData{}, false
 }
 
-func (k *Kugou) getCollectionId(gcid string) (string, error) {
+func (k *Kugou) getCollectionId(identifier string) (string, error) {
+	if strings.HasPrefix(identifier, "collection_") {
+		return identifier, nil
+	}
 	data := map[string]interface{}{
 		"data": []map[string]interface{}{
 			{
-				"id": gcid, "id_type": "1",
+				"id": identifier, "id_type": "1",
 			},
 		},
 		"ret_info": 1,
