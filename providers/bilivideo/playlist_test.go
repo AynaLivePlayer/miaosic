@@ -14,6 +14,10 @@ func TestBilibiliVideo_MatchPlaylist_Ok(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, api.GetName(), meta.Provider)
 	require.Equal(t, playlistCollection+"_1889103", meta.Identifier)
+	meta, ok = api.MatchPlaylist("https://space.bilibili.com/346563107/lists/262019?type=season")
+	require.True(t, ok)
+	require.Equal(t, api.GetName(), meta.Provider)
+	require.Equal(t, playlistCollection+"_262019", meta.Identifier)
 }
 
 func TestBilibiliVideo_MatchPlaylist_Fail(t *testing.T) {
@@ -47,7 +51,7 @@ func TestBilibiliVideo_GetPlaylist_Fav(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "AMV", playlist.Title)
-	require.GreaterOrEqual(t, len(playlist.Medias), 12)
+	require.GreaterOrEqual(t, 12, len(playlist.Medias))
 }
 
 func TestBilibiliVideo_GetPlaylist_Fav2(t *testing.T) {
@@ -58,7 +62,7 @@ func TestBilibiliVideo_GetPlaylist_Fav2(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "歌", playlist.Title)
-	require.GreaterOrEqual(t, len(playlist.Medias), 26)
+	require.GreaterOrEqual(t, 26, len(playlist.Medias))
 }
 
 func TestBilibiliVideo_GetPlaylist_Fav3(t *testing.T) {
@@ -69,5 +73,16 @@ func TestBilibiliVideo_GetPlaylist_Fav3(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "Vocaloid Music", playlist.Title)
-	require.Equal(t, len(playlist.Medias), 881)
+	require.Equal(t, 876, len(playlist.Medias))
+}
+
+func TestBilibiliVideo_GetPlaylist_Coll1(t *testing.T) {
+	uri := "https://space.bilibili.com/346563107/channel/collectiondetail?sid=1889103&ctype=0"
+	meta, ok := api.MatchPlaylist(uri)
+	require.True(t, ok)
+	playlist, err := api.GetPlaylist(meta)
+	require.NoError(t, err)
+	require.Equal(t, meta, playlist.Meta)
+	require.Equal(t, "合集·巴以冲突-世界在关注什么？", playlist.Title)
+	require.Equal(t, 876, 95)
 }

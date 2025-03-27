@@ -25,6 +25,7 @@ func fetchParsedResult[P dphttp.ParserResultType](requester dphttp.IRequester, r
 }
 
 var playlistCollectionRegex = regexp.MustCompile(`space.bilibili.com/(\d+)/channel/collectiondetail\?sid=(\d+)`)
+var playlistCollection1Regex = regexp.MustCompile(`space\.bilibili\.com/(\d+)/lists/(\d+)`)
 var playlistFavRegex = regexp.MustCompile(`space.bilibili.com/(\d+)/favlist\?fid=(\d+)`)
 
 func makePlaylistId(ptype string, id string) string {
@@ -45,6 +46,13 @@ func parsePlaylistId(pid string) (string, string) {
 func (n *BilibiliVideo) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 	if playlistCollectionRegex.MatchString(uri) {
 		matches := playlistCollectionRegex.FindStringSubmatch(uri)
+		return miaosic.MetaData{
+			Provider:   n.GetName(),
+			Identifier: makePlaylistId(playlistCollection, matches[2]),
+		}, true
+	}
+	if playlistCollection1Regex.MatchString(uri) {
+		matches := playlistCollection1Regex.FindStringSubmatch(uri)
 		return miaosic.MetaData{
 			Provider:   n.GetName(),
 			Identifier: makePlaylistId(playlistCollection, matches[2]),
