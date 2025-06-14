@@ -40,6 +40,19 @@ func TestNetease_GetMusicMeta(t *testing.T) {
 	t.Log(media.Cover.Url)
 }
 
+func TestNetease_GetMusicMetaRadioProgram(t *testing.T) {
+	//meta := miaosic.MetaData{
+	//	Provider:   api.GetName(),
+	//	Identifier: "3321110387",
+	//}
+	// todo finish radio program
+	//media, err := api.GetMediaInfo(meta)
+	//require.NoError(t, err)
+	//require.Equal(t, "染", media.Title)
+	//require.Equal(t, "Reol", media.Artist)
+	//t.Log(media.Cover.Url)
+}
+
 func TestNetease_UpdateMediaLyric(t *testing.T) {
 	meta := miaosic.MetaData{
 		Provider:   api.GetName(),

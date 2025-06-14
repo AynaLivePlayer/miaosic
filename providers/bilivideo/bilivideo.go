@@ -88,7 +88,7 @@ func NewBilibiliViedo() *BilibiliVideo {
 			if resp.Get("code").String() != "0" {
 				return errors.New("failed to find required data")
 			}
-			fmt.Println(resp.String())
+			//fmt.Println(resp.String())
 			r := regexp.MustCompile("</?em[^>]*>")
 			resp.Get("data.result").ForEach(func(key, value gjson.Result) bool {
 				*result = append(*result, miaosic.MediaInfo{
