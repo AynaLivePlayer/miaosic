@@ -17,6 +17,14 @@ func TestKugou_Search(t *testing.T) {
 	t.Log(result[0])
 }
 
+func TestKugou_MatchMedia(t *testing.T) {
+	meta, ok := testApi.MatchMedia("24aae0ef48311770043044ab2376a8db")
+	require.True(t, ok)
+	require.Equal(t, "24aae0ef48311770043044ab2376a8db", meta.Identifier)
+	meta, ok = testApi.MatchMedia("24aae0ef48311770043044ab2376a8dbaa")
+	require.False(t, ok)
+}
+
 func TestKugou_GetMediaInfo(t *testing.T) {
 	meta := miaosic.MetaData{Identifier: "c79c062ff4b362ac253031c6e577e722", Provider: testApi.GetName()}
 	result, err := testApi.GetMediaInfo(meta)
@@ -34,6 +42,14 @@ func TestKugou_GetMediaInfo2(t *testing.T) {
 }
 
 func TestKugou_GetMediaUrl(t *testing.T) {
+	meta := miaosic.MetaData{Identifier: strings.ToLower("b9a6c3eee00a7df6ff389ad383be5cb1"), Provider: testApi.GetName()}
+	result, err := testApi.GetMediaUrl(meta, miaosic.QualitySQ)
+	require.NoError(t, err, "GetMediaUrl Error")
+	require.NotEmpty(t, result, "GetMediaUrl Result Empty")
+	t.Log(result)
+}
+
+func TestKugou_GetMediaUrl_Vip(t *testing.T) {
 	meta := miaosic.MetaData{Identifier: strings.ToLower("24aae0ef48311770043044ab2376a8db"), Provider: testApi.GetName()}
 	result, err := testApi.GetMediaUrl(meta, miaosic.QualitySQ)
 	require.NoError(t, err, "GetMediaUrl Error")

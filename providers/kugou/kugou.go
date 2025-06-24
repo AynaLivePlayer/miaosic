@@ -14,6 +14,7 @@ import (
 	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -138,7 +139,15 @@ func (k *Kugou) GetName() string {
 	return "kugou"
 }
 
+var kugouIdRegex = regexp.MustCompile("^[0-9a-z]{32,32}$")
+
 func (k *Kugou) MatchMedia(uri string) (miaosic.MetaData, bool) {
+	if id := kugouIdRegex.FindString(uri); id != "" {
+		return miaosic.MetaData{
+			Provider:   k.GetName(),
+			Identifier: id,
+		}, true
+	}
 	return miaosic.MetaData{}, false
 }
 
