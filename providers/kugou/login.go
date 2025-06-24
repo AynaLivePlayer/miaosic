@@ -87,6 +87,7 @@ func (n *Kugou) QrLoginVerify(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLogin
 }
 
 func (n *Kugou) Logout() error {
+	n.cookie = make(map[string]string)
 	return nil
 }
 

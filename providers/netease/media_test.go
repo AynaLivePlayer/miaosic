@@ -9,6 +9,10 @@ import (
 
 var api = NewNetease()
 
+func init() {
+	api.RestoreSession("put your session here")
+}
+
 func TestNetease_Search(t *testing.T) {
 	result, err := api.Search("染 reol", 1, 20)
 	require.NoError(t, err)
