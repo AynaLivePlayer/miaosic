@@ -67,11 +67,23 @@ func TestNetease_UpdateMediaLyric(t *testing.T) {
 	require.NotEmpty(t, lrcs)
 }
 
-// todo: unable to get url for this song
-func TestNetease_GetMediaUrl(t *testing.T) {
+func TestNetease_GetMediaUrl_Vip(t *testing.T) {
 	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "2601642780",
+	}
+	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
+	require.NoError(t, err)
+	require.NotEmpty(t, urls)
+	require.True(t, strings.Contains(urls[0].Url, "http"))
+	t.Log(urls[0].Url)
+}
+
+// todo: unable to get url for this song
+func TestNetease_GetMediaUrl_3(t *testing.T) {
+	meta := miaosic.MetaData{
+		Provider:   api.GetName(),
+		Identifier: "28038055",
 	}
 	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err)
