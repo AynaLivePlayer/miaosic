@@ -191,6 +191,7 @@ func (k *Kugou) quality2str(quality miaosic.Quality) string {
 	return qualityStr
 }
 
+// todo using new api https://github.com/MakcRe/KuGouMusicApi/blob/main/module/song_url_new.js
 func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	//albumId := jsonResp.Get("data.0.audio_id").String()
 	currentUnix := time.Now().UnixMilli()

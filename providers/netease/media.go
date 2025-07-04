@@ -8,6 +8,7 @@ import (
 	neteaseUtil "github.com/XiaoMengXinX/Music163Api-Go/utils"
 	"github.com/spf13/cast"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -21,7 +22,14 @@ type Netease struct {
 }
 
 func (n *Netease) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{miaosic.QualityAny}
+	return []miaosic.Quality{
+		QualityStandard,
+		QualityHigher,
+		QualityExHigh,
+		QualityLossless,
+		QualityHiRes,
+		QualityJyMaster,
+	}
 }
 
 func NewNetease() *Netease {
@@ -118,10 +126,20 @@ func (n *Netease) GetMediaInfo(meta miaosic.MetaData) (media miaosic.MediaInfo, 
 	return media, nil
 }
 
+func (n *Netease) quality2str(quality miaosic.Quality) string {
+	if slices.Contains(n.Qualities(), quality) {
+		return string(quality)
+	}
+	return "standard"
+}
+
 func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	result, err := neteaseApi.GetSongURL(
 		n.ReqData,
-		neteaseApi.SongURLConfig{Ids: []int{cast.ToInt(meta.Identifier)}})
+		neteaseApi.SongURLConfig{
+			Ids:   []int{cast.ToInt(meta.Identifier)},
+			Level: n.quality2str(quality),
+		})
 	if err != nil || result.Code != 200 {
 		if err != nil {
 			return nil, err
@@ -136,9 +154,13 @@ func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([
 	}
 	urls := make([]miaosic.MediaUrl, 0)
 	for _, u := range result.Data {
+		qualityStr, ok := u.Level.(string)
+		if !ok {
+			qualityStr = "unknown"
+		}
 		urls = append(urls, miaosic.MediaUrl{
 			Url:     u.Url,
-			Quality: miaosic.QualityUnk,
+			Quality: miaosic.Quality(qualityStr),
 		})
 	}
 	return urls, nil
