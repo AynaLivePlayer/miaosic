@@ -1,10 +1,17 @@
 # Miaosic
 
-Media Provider Repository
+Music Provider Repository, provide a universal interface for different music service.
 
+## Command line Tool
 
-## Todo
+please check [miaosic cmd tool](./cmd/miaosic/README.md)
 
-- netease music
-- loginable implementation
-- local music optimization, load media when call api.
+## Available Providers
+
+| Provider       | Search | Info | Url | Lyric | Playlist | loginable |
+|----------------|--------|------|-----|-------|----------|-----------|
+| netease        | ✓    * | ✓  * | ✓ * | ✓ *   | ✓ *      | ✓         |
+| kuwo           | ✓      | ✓    | ✓   | ✓     | ✗        | ✗         |
+| kugou          | ✓      | ✓    | ✓ * | ✓     | ✓        | ✓         |
+| bilibili-video | ✓      | ✓    | ✓   | ✓     | ✓        | ✗         |
+> \* means require login 

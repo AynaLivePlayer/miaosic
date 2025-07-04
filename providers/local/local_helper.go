@@ -170,6 +170,6 @@ func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error)
 			lyrics = append(lyrics, miaosic.ParseLyrics(name, mMeta.Lyrics()))
 		}
 	}
-	fmt.Println(lyrics)
+	//fmt.Println(lyrics)
 	return lyrics, nil
 }
