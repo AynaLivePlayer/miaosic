@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"regexp"
+	"slices"
 	"strings"
 	"time"
 )
@@ -37,6 +38,19 @@ type Kugou struct {
 	clientver string
 	signkey   string
 	dfid      string // dfid. default should be "-"
+}
+
+func (k *Kugou) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{
+		Quality128k,
+		Quality320k,
+		QualityFlac,
+		QualityHigh,
+		QualityViperTape,
+		QualityViperClear,
+		QualityViperHiFi,
+		QualityViperAtmosphere,
+	}
 }
 
 func (k *Kugou) cookieString() string {
@@ -151,9 +165,10 @@ func (k *Kugou) MatchMedia(uri string) (miaosic.MetaData, bool) {
 	return miaosic.MetaData{}, false
 }
 
-func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
-	//albumId := jsonResp.Get("data.0.audio_id").String()
-	currentUnix := time.Now().UnixMilli()
+func (k *Kugou) quality2str(quality miaosic.Quality) string {
+	if slices.Contains(k.Qualities(), quality) {
+		return string(quality)
+	}
 	var qualityStr string
 	if strings.HasPrefix(string(quality), "magic_") {
 		qualityStr = string(quality)
@@ -173,7 +188,13 @@ func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 			qualityStr = "320"
 		}
 	}
+	return qualityStr
+}
 
+func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+	//albumId := jsonResp.Get("data.0.audio_id").String()
+	currentUnix := time.Now().UnixMilli()
+	qualityStr := k.quality2str(quality)
 	data := map[string]any{
 		"album_audio_id": 0,
 		"appid":          k.appid,

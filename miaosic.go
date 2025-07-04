@@ -86,6 +86,7 @@ func (p *Playlist) Copy() Playlist {
 type MediaProvider interface {
 	// GetName returns the name of the provider.
 	GetName() string
+	Qualities() []Quality
 
 	// Search returns a list of MetaData.
 	Search(keyword string, page, size int) ([]MediaInfo, error)

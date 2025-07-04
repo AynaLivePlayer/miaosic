@@ -31,6 +31,10 @@ type Local struct {
 	playlists map[string]*localPlaylist
 }
 
+func (l *Local) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{miaosic.QualityAny}
+}
+
 func NewLocal(localdir string) *Local {
 	l := &Local{localDir: localdir, playlists: make(map[string]*localPlaylist, 0)}
 	if err := os.MkdirAll(localdir, 0755); err != nil {

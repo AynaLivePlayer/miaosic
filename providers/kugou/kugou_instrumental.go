@@ -8,6 +8,10 @@ type KugouInstrumental struct {
 	k *Kugou
 }
 
+func (k *KugouInstrumental) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{"magic_acappella"}
+}
+
 func (k *KugouInstrumental) GetName() string {
 	return "kugou-instr"
 }

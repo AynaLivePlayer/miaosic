@@ -26,6 +26,10 @@ type Kuwo struct {
 	header         map[string]string
 }
 
+func (k *Kuwo) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{miaosic.QualityAny}
+}
+
 func NewKuwo() *Kuwo {
 	kw := &Kuwo{
 		PlaylistRegex0: regexp.MustCompile("[0-9]+"),

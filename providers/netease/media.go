@@ -20,6 +20,10 @@ type Netease struct {
 	PlaylistRegex1 *regexp.Regexp
 }
 
+func (n *Netease) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{miaosic.QualityAny}
+}
+
 func NewNetease() *Netease {
 	return &Netease{
 		ReqData: neteaseUtil.RequestData{

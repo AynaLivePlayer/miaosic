@@ -31,6 +31,10 @@ type BilibiliVideo struct {
 	cidApi    dphttp.ApiResultFunc[string, []string]
 }
 
+func (b *BilibiliVideo) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{miaosic.QualityAny}
+}
+
 func NewBilibiliViedo() *BilibiliVideo {
 	pvdr := &BilibiliVideo{
 		BVRegex:   regexp.MustCompile("^BV[0-9A-Za-z]+"),
