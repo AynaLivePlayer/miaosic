@@ -1,7 +1,6 @@
 package local
 
 import (
-	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
 	"github.com/saintfish/chardet"

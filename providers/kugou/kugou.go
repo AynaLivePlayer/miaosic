@@ -130,10 +130,12 @@ func NewKugou(useLite bool) *Kugou {
 			if resp.Get("errcode").Int() != 0 {
 				return errors.New("kugou: search api error" + resp.Get("error").String())
 			}
+			//fmt.Println(resp.String())
 			// Assuming data contains a list of search results
 			for _, r := range resp.Get("data.info").Array() {
 				media := miaosic.MediaInfo{
 					Title:  r.Get("songname").String(),
+					Album:  r.Get("album_name").String(),
 					Cover:  miaosic.Picture{},
 					Artist: r.Get("singername").String(),
 					Meta: miaosic.MetaData{
@@ -251,7 +253,7 @@ func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 	}
 	urls := make([]miaosic.MediaUrl, 0)
 	urlJson.Get("url").ForEach(func(key, value gjson.Result) bool {
-		urls = append(urls, miaosic.NewMediaUrl(value.String(), quality))
+		urls = append(urls, miaosic.NewMediaUrl(value.String(), miaosic.Quality(qualityStr)))
 		return true
 	})
 	return urls, nil

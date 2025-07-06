@@ -50,6 +50,16 @@ func SaveSessions(sessionFile string) error {
 		return nil
 	}
 
+	for _, providerName := range miaosic.ListAvailableProviders() {
+		provider, ok := miaosic.GetProvider(providerName)
+		if !ok {
+			continue
+		}
+		if loginable, ok := provider.(miaosic.Loginable); ok {
+			SetSession(providerName, loginable.SaveSession())
+		}
+	}
+
 	data, err := json.MarshalIndent(sessions, "", "  ")
 	if err != nil {
 		return err

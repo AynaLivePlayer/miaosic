@@ -10,6 +10,7 @@ import (
 	_ "github.com/AynaLivePlayer/miaosic/providers/kuwo"
 	_ "github.com/AynaLivePlayer/miaosic/providers/local"
 	_ "github.com/AynaLivePlayer/miaosic/providers/netease"
+	_ "github.com/AynaLivePlayer/miaosic/providers/qq"
 	"github.com/spf13/cobra"
 )
 
