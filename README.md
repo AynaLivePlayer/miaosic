@@ -22,6 +22,11 @@ please figure it out by yourself.
 
 > \* means require login
 
+## Known Problem
+
+1. Current implementation of source registration is **not** threading-safe, 
+please implement thread-safe version by yourself in your project require multi-thread access (for example, web).
+
 ## Disclaimer
 
 All APIs used in this project are  **publicly available** on the internet and not obtained through illegal means such as
