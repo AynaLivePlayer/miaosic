@@ -1,8 +1,8 @@
 package miaosic
 
 type Picture struct {
-	Url  string
-	Data []byte
+	Url  string `json:"url"`
+	Data []byte `json:"data"`
 }
 
 func (p Picture) Exists() bool {
@@ -10,8 +10,8 @@ func (p Picture) Exists() bool {
 }
 
 type MetaData struct {
-	Provider   string
-	Identifier string
+	Provider   string `json:"provider"`
+	Identifier string `json:"identifier"`
 }
 
 func NewMetaData(provider, identifier string) MetaData {
@@ -39,9 +39,9 @@ const (
 )
 
 type MediaUrl struct {
-	Url     string
-	Quality Quality
-	Header  map[string]string
+	Url     string            `json:"url"`
+	Quality Quality           `json:"quality"`
+	Header  map[string]string `json:"header"`
 }
 
 func NewMediaUrl(url string, quality Quality) MediaUrl {
