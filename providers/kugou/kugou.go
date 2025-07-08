@@ -155,13 +155,13 @@ func (k *Kugou) GetName() string {
 	return "kugou"
 }
 
-var kugouIdRegex = regexp.MustCompile("^[0-9a-z]{32,32}$")
+var kugouIdRegex = regexp.MustCompile("^[0-9a-zA-Z]{32,32}$")
 
 func (k *Kugou) MatchMedia(uri string) (miaosic.MetaData, bool) {
 	if id := kugouIdRegex.FindString(uri); id != "" {
 		return miaosic.MetaData{
 			Provider:   k.GetName(),
-			Identifier: id,
+			Identifier: strings.ToLower(id),
 		}, true
 	}
 	return miaosic.MetaData{}, false
