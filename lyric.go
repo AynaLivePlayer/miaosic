@@ -11,8 +11,8 @@ import (
 var timeTagRegex = regexp.MustCompile("\\[[0-9]+:[0-9]+(\\.[0-9]+)?\\]")
 
 type LyricLine struct {
-	Time  float64 // in seconds
-	Lyric string
+	Time  float64 `json:"time"` // in seconds
+	Lyric string  `json:"lyric"`
 }
 
 func (lr LyricLine) String() string {
@@ -21,16 +21,16 @@ func (lr LyricLine) String() string {
 }
 
 type Lyrics struct {
-	Lang    string
-	Content []LyricLine
+	Lang    string      `json:"lang"`
+	Content []LyricLine `json:"content"`
 }
 
 type LyricContext struct {
-	Now   LyricLine
-	Index int
-	Total int
-	Prev  []LyricLine
-	Next  []LyricLine
+	Now   LyricLine   `json:"now"`
+	Index int         `json:"index"`
+	Total int         `json:"total"`
+	Prev  []LyricLine `json:"prev"`
+	Next  []LyricLine `json:"next"`
 }
 
 func (l *Lyrics) String() string {

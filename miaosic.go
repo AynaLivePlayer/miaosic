@@ -53,17 +53,17 @@ func NewMediaUrl(url string, quality Quality) MediaUrl {
 }
 
 type MediaInfo struct {
-	Title  string
-	Artist string
-	Cover  Picture
-	Album  string
-	Meta   MetaData
+	Title  string   `json:"title"`
+	Artist string   `json:"artist"`
+	Cover  Picture  `json:"cover"`
+	Album  string   `json:"album"`
+	Meta   MetaData `json:"meta"`
 }
 
 type Playlist struct {
-	Title  string
-	Medias []MediaInfo
-	Meta   MetaData
+	Title  string      `json:"title"`
+	Medias []MediaInfo `json:"medias"`
+	Meta   MetaData    `json:"meta"`
 }
 
 func (p *Playlist) DisplayName() string {
@@ -108,13 +108,13 @@ type MediaProvider interface {
 }
 
 type QrLoginSession struct {
-	Url string
-	Key string
+	Url string `json:"url"`
+	Key string `json:"key"`
 }
 
 type QrLoginResult struct {
-	Success bool
-	Message string
+	Success bool   `json:"success"`
+	Message string `json:"message"`
 }
 
 type Loginable interface {
