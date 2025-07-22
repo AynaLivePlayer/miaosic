@@ -46,10 +46,14 @@ func (n *Netease) QrLoginVerify(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLog
 	}
 	cookies := make([]*http.Cookie, 0)
 	for _, c := range (&http.Response{Header: h}).Cookies() {
-		if c.Name == "MUSIC_U" || c.Name == "__csrf" {
+		if c.Name == "MUSIC_U" || c.Name == "__csrf" || c.Name == "MUSIC_A" {
 			cookies = append(cookies, c)
 		}
 	}
+	cookies = append(cookies, &http.Cookie{
+		Name:  "deviceId",
+		Value: n.deviceId,
+	})
 	n.ReqData.Cookies = cookies
 	return &miaosic.QrLoginResult{
 		Success: true,
@@ -61,6 +65,7 @@ func (n *Netease) Logout() error {
 	n.ReqData.Cookies = []*http.Cookie{
 		{Name: "MUSIC_U", Value: ""},
 		{Name: "__csrf", Value: ""},
+		{Name: "deviceId", Value: n.deviceId},
 	}
 	return nil
 }
@@ -71,10 +76,11 @@ func (n *Netease) SaveSession() string {
 	data["MUSIC_U"] = ""
 	data["__csrf"] = ""
 	for _, c := range n.ReqData.Cookies {
-		if c.Name == "MUSIC_U" || c.Name == "__csrf" {
+		if c.Name == "MUSIC_U" || c.Name == "MUSIC_A" || c.Name == "__csrf" || c.Name == "deviceId" {
 			data[c.Name] = c.Value
 		}
 	}
+	data["deviceId"] = n.deviceId
 	b, _ := json.Marshal(data)
 	return base64.StdEncoding.EncodeToString(b)
 }
@@ -92,11 +98,20 @@ func (n *Netease) RestoreSession(session string) error {
 	}
 	cookies := make([]*http.Cookie, 0)
 	for name, value := range data {
-		cookies = append(cookies, &http.Cookie{
-			Name:  name,
-			Value: value,
-		})
+		if name == "MUSIC_U" || name == "MUSIC_A" || name == "__csrf" {
+			cookies = append(cookies, &http.Cookie{
+				Name:  name,
+				Value: value,
+			})
+		}
+		if name == "deviceId" {
+			n.deviceId = value
+		}
 	}
+	cookies = append(cookies, &http.Cookie{
+		Name:  "deviceId",
+		Value: n.deviceId,
+	})
 	n.ReqData.Cookies = cookies
 	return nil
 }

@@ -7,6 +7,7 @@ import (
 	neteaseTypes "github.com/XiaoMengXinX/Music163Api-Go/types"
 	neteaseUtil "github.com/XiaoMengXinX/Music163Api-Go/utils"
 	"github.com/spf13/cast"
+	"net/http"
 	"regexp"
 	"slices"
 	"strconv"
@@ -19,6 +20,7 @@ type Netease struct {
 	IdRegex1       *regexp.Regexp
 	PlaylistRegex0 *regexp.Regexp
 	PlaylistRegex1 *regexp.Regexp
+	deviceId       string
 }
 
 func (n *Netease) Qualities() []miaosic.Quality {
@@ -33,6 +35,10 @@ func (n *Netease) Qualities() []miaosic.Quality {
 }
 
 func NewNetease() *Netease {
+	deviceId, err := generateRandomString(32)
+	if err != nil {
+		deviceId = "00000000000000000000000000000000"
+	}
 	return &Netease{
 		ReqData: neteaseUtil.RequestData{
 			Headers: neteaseUtil.Headers{
@@ -40,12 +46,20 @@ func NewNetease() *Netease {
 					"X-Real-IP",
 					"118.88.88.88",
 				},
-			}},
+			},
+			Cookies: []*http.Cookie{
+				{
+					Name:  "deviceId",
+					Value: deviceId,
+				},
+			},
+		},
 		IdRegex0:       regexp.MustCompile("^[0-9]+$"),
 		IdRegex1:       regexp.MustCompile("^wy[0-9]+$"),
 		PlaylistRegex0: regexp.MustCompile("^[0-9]+$"),
 		// https://music.163.com/playlist?id=2382819181&userid=95906480
 		PlaylistRegex1: regexp.MustCompile("playlist\\?id=[0-9]+"),
+		deviceId:       deviceId,
 	}
 }
 
