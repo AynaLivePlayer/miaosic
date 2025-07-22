@@ -8,6 +8,10 @@ toolchain go1.24.4
 //	github.com/aynakeya/deepcolor => ../../../deepcolor
 //)
 
+//replace (
+//	github.com/XiaoMengXinX/Music163Api-Go => ../../../AyAudioBot/Music163Api-Go
+//)
+
 require (
 	github.com/XiaoMengXinX/Music163Api-Go v0.1.30
 	github.com/aynakeya/deepcolor v1.0.3
