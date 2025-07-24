@@ -2,3 +2,4 @@
 go.sum
 cmd/miaosic/miaosic
 cmd/miaosic/session.json
+cmd/miaosic/session.bak.json
