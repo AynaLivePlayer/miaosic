@@ -15,7 +15,7 @@ func (p *QQMusicProvider) Login(username string, password string) error {
 func (p *QQMusicProvider) Logout() error {
 	// todo api request
 	p.cred = NewCredential()
-	return miaosic.ErrNotImplemented
+	return nil
 }
 
 func (p *QQMusicProvider) IsLogin() bool {
