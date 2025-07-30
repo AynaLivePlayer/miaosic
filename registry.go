@@ -23,6 +23,17 @@ func RegisterProvider(provider MediaProvider) {
 	_providers[provider.GetName()] = provider
 }
 
+func UnregisterProvider(name string) {
+	_, ok := _providers[name]
+	if ok {
+		delete(_providers, name)
+	}
+}
+
+func UnregisterAllProvider() {
+	_providers = make(map[string]MediaProvider)
+}
+
 func GetProvider(name string) (MediaProvider, bool) {
 	provider, ok := _providers[name]
 	return provider, ok
