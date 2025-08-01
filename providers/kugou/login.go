@@ -19,6 +19,10 @@ func (n *Kugou) IsLogin() bool {
 	return ok
 }
 
+func (p *Kugou) RefreshLogin() error {
+	return nil
+}
+
 func (n *Kugou) QrLogin() (*miaosic.QrLoginSession, error) {
 	unixMili := time.Now().UnixMilli()
 	data := map[string]string{

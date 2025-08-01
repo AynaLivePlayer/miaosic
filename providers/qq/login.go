@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
+	"time"
 )
 
 func (p *QQMusicProvider) Login(username string, password string) error {
@@ -21,6 +22,10 @@ func (p *QQMusicProvider) Logout() error {
 func (p *QQMusicProvider) IsLogin() bool {
 	// todo check if token expires
 	return p.cred.HasMusicID() && p.cred.HasMusicKey()
+}
+
+func (p *QQMusicProvider) RefreshLogin() error {
+	return p.refreshToken()
 }
 
 func (p *QQMusicProvider) refreshToken() error {
@@ -52,6 +57,7 @@ func (p *QQMusicProvider) refreshToken() error {
 	p.cred.RefreshKey = data.Get("data.refresh_key").String()
 	p.cred.EncryptUin = data.Get("data.encryptUin").String()
 	p.cred.LoginType = int(data.Get("data.loginType").Int())
+	p.cred.CreatedAt = time.Now().Unix()
 	return nil
 }
 

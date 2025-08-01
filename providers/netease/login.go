@@ -21,6 +21,10 @@ func (n *Netease) IsLogin() bool {
 	return status.Account.Id != 0
 }
 
+func (p *Netease) RefreshLogin() error {
+	return nil
+}
+
 func (n *Netease) QrLogin() (*miaosic.QrLoginSession, error) {
 	unikey, err := neteaseApi.GetQrUnikey(n.ReqData)
 	if err != nil {

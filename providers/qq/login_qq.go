@@ -270,5 +270,6 @@ func (p *QQMusicProvider) getCredentialWithCode(code string, loginType int) (*mi
 	p.cred.RefreshKey = data.Get("data.refresh_key").String()
 	p.cred.EncryptUin = data.Get("data.encryptUin").String()
 	p.cred.LoginType = int(data.Get("data.loginType").Int())
+	p.cred.CreatedAt = time.Now().Unix()
 	return &miaosic.QrLoginResult{Success: true, Message: "ok"}, nil
 }

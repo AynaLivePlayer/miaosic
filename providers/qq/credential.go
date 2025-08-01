@@ -14,6 +14,9 @@ type Credential struct {
 	RefreshKey   string `json:"refresh_key"`
 	EncryptUin   string `json:"encryptUin"`
 	LoginType    int    `json:"loginType"`
+	// Extra field to track if I should refresh token
+	// its not in qq cookie
+	CreatedAt int64 `json:"created_at"`
 }
 
 func NewCredential() *Credential {

@@ -15,17 +15,17 @@ import (
 )
 
 func (p *QQMusicProvider) makeApiRequest(module, method string, params map[string]interface{}) (gjson.Result, error) {
+	expiredTime := time.UnixMilli(p.cred.CreatedAt * 1000).Add(7 * 24 * time.Hour)
+	if expiredTime.Before(time.Now().Add(24*time.Hour)) && !p.tokenRefreshed {
+		//if !p.tokenRefreshed {
+		// only refresh once
+		p.tokenRefreshed = true
+		p.qimeiUpdated = false
+		_ = p.refreshToken()
+	}
 	if !p.qimeiUpdated {
 		_, _ = getQimei(p.device, p.cfg.Version)
 		p.qimeiUpdated = true
-	}
-
-	expiredTime := time.UnixMilli(p.cred.ExpiredAt * 1000)
-
-	if expiredTime.Before(time.Now().Add(24*time.Hour)) && !p.tokenRefreshed {
-		_ = p.refreshToken()
-		// only refresh once
-		p.tokenRefreshed = true
 	}
 
 	// 公共参数
