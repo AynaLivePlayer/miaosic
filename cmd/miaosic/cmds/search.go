@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/spf13/cobra"
@@ -41,6 +42,17 @@ var CmdSearch = &cobra.Command{
 
 		if len(results) == 0 {
 			fmt.Println("No results found")
+			return
+		}
+
+		result, _ := cmd.Flags().GetBool("json")
+		if result {
+			jsonBytes, err := json.Marshal(results)
+			if err != nil {
+				fmt.Printf("Error marshaling to JSON: %v\n", err)
+				return
+			}
+			fmt.Println(string(jsonBytes))
 			return
 		}
 

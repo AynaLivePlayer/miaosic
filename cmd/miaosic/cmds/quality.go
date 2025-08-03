@@ -1,6 +1,7 @@
 package cmds
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/spf13/cobra"
@@ -23,6 +24,17 @@ var CmdQuality = &cobra.Command{
 		qualities := provider.Qualities()
 		if len(qualities) == 0 {
 			fmt.Printf("No qualities found for provider: %s\n", providerName)
+			return
+		}
+
+		result, _ := cmd.Flags().GetBool("json")
+		if result {
+			jsonBytes, err := json.Marshal(qualities)
+			if err != nil {
+				fmt.Printf("Error marshaling to JSON: %v\n", err)
+				return
+			}
+			fmt.Println(string(jsonBytes))
 			return
 		}
 
