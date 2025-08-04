@@ -21,6 +21,7 @@ func (lr LyricLine) String() string {
 }
 
 type Lyrics struct {
+	// Lang will is ISO 639-3 string
 	Lang    string      `json:"lang"`
 	Content []LyricLine `json:"content"`
 }

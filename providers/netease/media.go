@@ -3,6 +3,7 @@ package netease
 import (
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/utils"
 	neteaseApi "github.com/XiaoMengXinX/Music163Api-Go/api"
 	neteaseTypes "github.com/XiaoMengXinX/Music163Api-Go/types"
 	neteaseUtil "github.com/XiaoMengXinX/Music163Api-Go/utils"
@@ -187,10 +188,10 @@ func (n *Netease) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error)
 	}
 	lrcs := make([]miaosic.Lyrics, 0)
 	if result.Lrc.Lyric != "" {
-		lrcs = append(lrcs, miaosic.ParseLyrics("default", result.Lrc.Lyric))
+		lrcs = append(lrcs, utils.ParseLyricWithLangDetection(result.Lrc.Lyric))
 	}
 	if result.Tlyric.Lyric != "" {
-		lrcs = append(lrcs, miaosic.ParseLyrics("translation", result.Tlyric.Lyric))
+		lrcs = append(lrcs, utils.ParseLyricWithLangDetection(result.Tlyric.Lyric))
 	}
 	if result.Klyric.Lyric != "" {
 		lrcs = append(lrcs, miaosic.ParseLyrics("karaoke", result.Klyric.Lyric))

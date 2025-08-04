@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/providers"
+	"github.com/AynaLivePlayer/miaosic/utils"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/spf13/cast"
@@ -122,7 +123,7 @@ func NewKuwo() *Kuwo {
 			if len(lrcs) == 0 {
 				return miaosic.ErrorExternalApi
 			}
-			*lyrics = []miaosic.Lyrics{miaosic.ParseLyrics("default", strings.Join(lrcs, "\n"))}
+			*lyrics = []miaosic.Lyrics{utils.ParseLyricWithLangDetection(strings.Join(lrcs, "\n"))}
 			return nil
 		})
 	kw.SearchApi = deepcolor.CreateApiResultFunc(

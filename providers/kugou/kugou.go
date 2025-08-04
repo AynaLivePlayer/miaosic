@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/providers"
+	"github.com/AynaLivePlayer/miaosic/utils"
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/tidwall/gjson"
@@ -302,5 +303,5 @@ func (k *Kugou) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []miaosic.Lyrics{miaosic.ParseLyrics("default", string(lyricdata))}, nil
+	return []miaosic.Lyrics{utils.ParseLyricWithLangDetection(string(lyricdata))}, nil
 }

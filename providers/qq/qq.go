@@ -3,6 +3,7 @@ package qq
 import (
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/utils"
 	"github.com/tidwall/gjson"
 	"regexp"
 	"slices"
@@ -237,7 +238,7 @@ func (p *QQMusicProvider) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics
 	if lyricEnc := resp.Get("data.lyric").String(); lyricEnc != "" {
 		lyric, err := qrcDecrypt(lyricEnc)
 		if err == nil {
-			result = append(result, miaosic.ParseLyrics("default", lyric))
+			result = append(result, utils.ParseLyricWithLangDetection(lyric))
 		} else {
 			fmt.Println(err)
 		}
@@ -245,13 +246,13 @@ func (p *QQMusicProvider) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics
 	if lyricEnc := resp.Get("data.trans").String(); lyricEnc != "" {
 		lyric, err := qrcDecrypt(lyricEnc)
 		if err == nil {
-			result = append(result, miaosic.ParseLyrics("translation", lyric))
+			result = append(result, utils.ParseLyricWithLangDetection(lyric))
 		}
 	}
 	if lyricEnc := resp.Get("data.roma").String(); lyricEnc != "" {
 		lyric, err := qrcDecrypt(lyricEnc)
 		if err == nil {
-			result = append(result, miaosic.ParseLyrics("roma", lyric))
+			result = append(result, utils.ParseLyricWithLangDetection(lyric))
 		}
 	}
 	return result, nil
