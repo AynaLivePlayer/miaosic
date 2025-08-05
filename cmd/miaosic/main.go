@@ -47,6 +47,7 @@ func init() {
 	rootCmd.AddCommand(cmds.CmdUrl)
 	rootCmd.AddCommand(cmds.CmdLyric)
 	rootCmd.AddCommand(cmds.CmdQuality)
+	rootCmd.AddCommand(cmds.CmdDownload)
 }
 
 func main() {

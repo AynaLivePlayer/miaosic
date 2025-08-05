@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/cmd/miaosic/cmds/tagwriter"
+	"github.com/AynaLivePlayer/miaosic/tag"
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/cobra"
@@ -14,7 +14,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 )
 
 var (
@@ -23,7 +22,7 @@ var (
 )
 
 func init() {
-	CmdDownload.Flags().BoolVar(&writeMetadata, "metadata", true, "Write metadata (tags, cover, lyrics) to the file")
+	CmdDownload.Flags().BoolVar(&writeMetadata, "metadata", false, "Write metadata (tags, cover, lyrics) to the file")
 	CmdDownload.Flags().StringVar(&downloadQuality, "quality", "", "Quality preference (e.g., 128k, 320k, flac)")
 }
 
@@ -67,7 +66,7 @@ Supported formats for metadata include MP3 and FLAC.`,
 		fmt.Printf("Selected quality: %s\n", mediaURL.Quality)
 
 		// Step 4: Download media file with progress bar (this part is unchanged)
-		resp, err := http.Get(mediaURL.Url) // Simplified GET for clarity
+		resp, err := http.Get(mediaURL.Url)
 		if err != nil {
 			fmt.Printf("Error starting download: %v\n", err)
 			return
@@ -95,28 +94,17 @@ Supported formats for metadata include MP3 and FLAC.`,
 			return
 		}
 
-		// *** NEW: Detect content type from the first 512 bytes ***
 		downloadedBytes := mediaData.Bytes()
-		detectedContentType := mimetype.Detect(downloadedBytes[:min(512, len(downloadedBytes))]).String()
-
-		ext, err := extensionFromContentType(detectedContentType)
-		if err != nil {
-			// Fallback strategy if detection is inconclusive
-			fmt.Printf("Warning: Could not determine file type from content (%s). Falling back to URL extension.\n", detectedContentType)
-			parsedURL, urlErr := url.Parse(mediaURL.Url)
-			if urlErr != nil {
-				// If URL is malformed, we can't get an extension.
-				ext = ""
-			} else {
-				// Get extension from the path, which has no query string.
-				ext = filepath.Ext(parsedURL.Path)
-			}
-			if ext == "" {
-				fmt.Println("Warning: Could not determine file type from URL. Defaulting to .mp3.")
-				ext = ".mp3" // Final fallback
-			}
+		parsedURL, urlErr := url.Parse(mediaURL.Url)
+		var ext string
+		if urlErr != nil {
+			ext = ""
+		} else {
+			ext = filepath.Ext(parsedURL.Path)
 		}
-		fmt.Printf("Detected file type: %s (%s)\n", detectedContentType, ext)
+		if ext == "" {
+			ext = mimetype.Detect(downloadedBytes[:min(512, len(downloadedBytes))]).Extension()
+		}
 
 		// Step 5: Save the file from the buffer
 		filename := sanitizeFilename(fmt.Sprintf("%s - %s%s", info.Artist, info.Title, ext))
@@ -148,7 +136,29 @@ Supported formats for metadata include MP3 and FLAC.`,
 				fmt.Println("Could not download cover art.")
 			}
 		}
-		err = tagFile(filename, ext, info, lyric, info.Cover)
+		tagMeta := tag.Metadata{
+			Title:    info.Title,
+			Artist:   info.Artist,
+			Album:    info.Album,
+			Lyrics:   nil,
+			Pictures: nil,
+		}
+		for _, lrc := range lyric {
+			tagMeta.Lyrics = append(tagMeta.Lyrics, tag.Lyrics{
+				Lang:   lrc.Lang,
+				Lyrics: lrc.String(),
+			})
+		}
+		if info.Cover.Data != nil {
+			tagMeta.Pictures = append(tagMeta.Pictures, tag.Picture{
+				Mimetype:    mimetype.Detect(info.Cover.Data).String(),
+				Type:        tag.PictureTypeFrontCover,
+				Description: "AlbumCover",
+				Data:        info.Cover.Data,
+			})
+		}
+
+		err = tag.WriteTo(filename, tagMeta)
 		if err != nil {
 			fmt.Printf("Error writing metadata: %v\n", err)
 			fmt.Println("File is saved without metadata.")
@@ -157,30 +167,4 @@ Supported formats for metadata include MP3 and FLAC.`,
 		}
 		fmt.Printf("Download complete! Saved to %s\n", filename)
 	},
-}
-
-// tagFile and its helpers (tagMp3, tagFlac) remain unchanged.
-func tagFile(filename, ext string, info miaosic.MediaInfo, lyric []miaosic.Lyrics, cover miaosic.Picture) error {
-	switch strings.ToLower(ext) {
-	case ".mp3":
-		return tagwriter.WriteId3v2(filename, info, lyric, cover)
-	case ".flac":
-		return tagwriter.WriteFlac(filename, info, lyric, cover)
-	default:
-		return fmt.Errorf("unsupported file type for tagging: %s", ext)
-	}
-}
-
-func extensionFromContentType(ct string) (string, error) {
-	switch ct {
-	case "audio/mpeg":
-		return ".mp3", nil
-	case "audio/flac", "audio/x-flac":
-		return ".flac", nil
-	case "audio/mp4":
-		return ".m4a", nil
-	case "audio/aac":
-		return ".aac", nil
-	}
-	return "", fmt.Errorf("unsupported content type: %s", ct)
 }
