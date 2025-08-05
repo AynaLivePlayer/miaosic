@@ -1,5 +1,7 @@
 package miaosic
 
+const VERSION = "0.2.6"
+
 type Picture struct {
 	Url  string `json:"url"`
 	Data []byte `json:"data"`
