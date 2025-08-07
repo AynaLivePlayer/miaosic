@@ -8,8 +8,6 @@ toolchain go1.24.4
 //	github.com/aynakeya/deepcolor => ../../../deepcolor
 //)
 
-//replace github.com/go-flac/go-flac/v2 => ../../../go-flac/v2
-
 //replace (
 //	github.com/XiaoMengXinX/Music163Api-Go => ../../../AyAudioBot/Music163Api-Go
 //)
@@ -23,7 +21,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.9
 	github.com/go-flac/flacpicture/v2 v2.0.2
 	github.com/go-flac/flacvorbis/v2 v2.0.2
-	github.com/go-flac/go-flac/v2 v2.0.3
+	github.com/go-flac/go-flac/v2 v2.0.4
 	github.com/go-resty/resty/v2 v2.16.5
 	github.com/google/uuid v1.6.0
 	github.com/jinzhu/copier v0.4.0
