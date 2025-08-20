@@ -17,8 +17,9 @@ import (
 func (p *QQMusicProvider) makeApiRequest(module, method string, params map[string]interface{}) (gjson.Result, error) {
 	expiredTime := time.UnixMilli(p.cred.CreatedAt * 1000).Add(7 * 24 * time.Hour)
 	if expiredTime.Before(time.Now().Add(24*time.Hour)) && !p.tokenRefreshed {
+		//if true && !p.tokenRefreshed {
 		//if !p.tokenRefreshed {
-		// only refresh once
+		//only refresh once
 		p.tokenRefreshed = true
 		p.qimeiUpdated = false
 		_ = p.refreshToken()
@@ -111,7 +112,7 @@ func (p *QQMusicProvider) makeApiRequest(module, method string, params map[strin
 		return jsonResp.Get(moduleKeyEscaped), errors.New("miaosic (qq): invalid cookie")
 	}
 	if code != 0 {
-		return jsonResp.Get(moduleKeyEscaped), fmt.Errorf("miaosic (qq): invalid code: %d", code)
+		return jsonResp.Get(moduleKeyEscaped), fmt.Errorf("miaosic (qq): invalid code: %d %s", code, jsonResp.Get(moduleKeyEscaped+".msg").String())
 	}
 	return jsonResp.Get(moduleKeyEscaped), nil
 }
