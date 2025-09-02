@@ -9,6 +9,7 @@ import (
 
 func init() {
 	CmdUrl.Flags().String("quality", "", "Quality preference (128k, 192k, 256k, 320k, hq, sq)")
+	CmdUrl.Flags().BoolP("json", "j", false, "output in json")
 }
 
 var CmdUrl = &cobra.Command{

@@ -35,11 +35,9 @@ var rootCmd = &cobra.Command{
 }
 
 var sessionFile string
-var outputJson bool
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&sessionFile, "session-file", "s", "", "Session file path")
-	rootCmd.PersistentFlags().BoolVarP(&outputJson, "json", "j", false, "output in json")
 	rootCmd.AddCommand(cmds.CmdProviders)
 	rootCmd.AddCommand(cmds.CmdSearch)
 	rootCmd.AddCommand(cmds.CmdQrlogin)

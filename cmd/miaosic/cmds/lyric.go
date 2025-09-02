@@ -18,6 +18,7 @@ var (
 func init() {
 	CmdLyric.Flags().StringVarP(&lyricOutput, "output", "o", "", "Output lyrics to file")
 	CmdLyric.Flags().BoolVar(&saveLyric, "save", false, "Save lyrics to file with auto-generated name")
+	CmdLyric.Flags().BoolP("json", "j", false, "output in json")
 }
 
 var CmdLyric = &cobra.Command{

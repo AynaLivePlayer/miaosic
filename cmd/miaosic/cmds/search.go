@@ -16,6 +16,7 @@ var (
 func init() {
 	CmdSearch.Flags().IntVarP(&searchPage, "page", "p", 1, "Page number")
 	CmdSearch.Flags().IntVar(&searchPageSize, "page-size", 10, "Results per page")
+	CmdSearch.Flags().BoolP("json", "j", false, "output in json")
 }
 
 var CmdSearch = &cobra.Command{

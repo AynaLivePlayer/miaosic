@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+func init() {
+	CmdInfo.Flags().BoolP("json", "j", false, "output in json")
+}
+
 var CmdInfo = &cobra.Command{
 	Use:   "info <provider> <uri>",
 	Short: "Get media info",

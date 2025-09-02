@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+func init() {
+	CmdQuality.Flags().BoolP("json", "j", false, "output in json")
+}
+
 var CmdQuality = &cobra.Command{
 	Use:   "quality <provider>",
 	Short: "List supported qualities for a provider",
