@@ -17,13 +17,15 @@ import (
 )
 
 var (
-	writeMetadata   bool
-	downloadQuality string
+	writeMetadata     bool
+	downloadQuality   string
+	specifiedFilename string
 )
 
 func init() {
 	CmdDownload.Flags().BoolVar(&writeMetadata, "metadata", false, "Write metadata (tags, cover, lyrics) to the file")
 	CmdDownload.Flags().StringVar(&downloadQuality, "quality", "", "Quality preference (e.g., 128k, 320k, flac)")
+	CmdDownload.Flags().StringVar(&specifiedFilename, "filename", "", "Filename to use for download")
 }
 
 var CmdDownload = &cobra.Command{
@@ -105,9 +107,12 @@ Supported formats for metadata include MP3 and FLAC.`,
 		if ext == "" {
 			ext = mimetype.Detect(downloadedBytes[:min(512, len(downloadedBytes))]).Extension()
 		}
-
-		// Step 5: Save the file from the buffer
 		filename := sanitizeFilename(fmt.Sprintf("%s - %s%s", info.Artist, info.Title, ext))
+		// Step 5: Save the file from the buffer
+		if specifiedFilename != "" {
+			filename = specifiedFilename
+		}
+
 		err = os.WriteFile(filename, downloadedBytes, 0644)
 		if err != nil {
 			fmt.Printf("Error saving file to disk: %v\n", err)
