@@ -8,5 +8,14 @@ import (
 
 func init() {
 	rng = rand.New(rand.NewSource(time.Now().UnixNano()))
-	miaosic.RegisterProvider(NewQQMusicProvider())
+	// user should manually register provider since there are two channel
+	//miaosic.RegisterProvider(NewQQMusicProvider("qq"))
+}
+
+func UseQQLogin() {
+	miaosic.RegisterProvider(NewQQMusicProvider("qq"))
+}
+
+func UseWechatLogin() {
+	miaosic.RegisterProvider(NewQQMusicProvider("wechat"))
 }

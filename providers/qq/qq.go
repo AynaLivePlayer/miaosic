@@ -25,6 +25,7 @@ type QQMusicProvider struct {
 	header         map[string]string
 	qimeiUpdated   bool //i don't care concurrence
 	tokenRefreshed bool
+	channel        string // "qq" or "wechat"
 }
 
 func (p *QQMusicProvider) GetName() string {
@@ -41,7 +42,10 @@ func (p *QQMusicProvider) Qualities() []miaosic.Quality {
 	}
 }
 
-func NewQQMusicProvider() *QQMusicProvider {
+func NewQQMusicProvider(channel string) *QQMusicProvider {
+	if channel != "qq" && channel != "wechat" {
+		channel = "qq"
+	}
 	val := &QQMusicProvider{
 		cfg: ApiConfig{
 			Version:     "13.2.5.8",
@@ -58,6 +62,7 @@ func NewQQMusicProvider() *QQMusicProvider {
 		},
 		qimeiUpdated:   false,
 		tokenRefreshed: false,
+		channel:        channel,
 	}
 	return val
 }

@@ -250,7 +250,20 @@ func (p *QQMusicProvider) getCredentialWithCode(code string, loginType int) (*mi
 		"code": code,
 	}
 
-	data, err := p.makeApiRequest("QQConnectLogin.LoginServer", "QQLogin", params)
+	var module, method string
+
+	// 微信登录
+	if loginType == 1 {
+		params["strAppid"] = "wx48db31d50e334801"
+		module = "music.login.LoginServer"
+		method = "Login"
+	} else if loginType == 2 {
+		// QQ登录
+		module = "QQConnectLogin.LoginServer"
+		method = "QQLogin"
+	}
+
+	data, err := p.makeApiRequest(module, method, params)
 	if err != nil {
 		return nil, err
 	}

@@ -62,12 +62,16 @@ func (p *QQMusicProvider) refreshToken() error {
 }
 
 func (p *QQMusicProvider) QrLogin() (*miaosic.QrLoginSession, error) {
-	// todo finish wechat qrlogin channel
+	if p.channel == "wechat" {
+		return p.getWxQR()
+	}
 	return p.getQQQR()
 }
 
 func (p *QQMusicProvider) QrLoginVerify(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLoginResult, error) {
-	// todo finish wechat qrlogin channel
+	if p.channel == "wechat" {
+		return p.checkWxQR(qrlogin)
+	}
 	return p.checkQQQR(qrlogin)
 }
 

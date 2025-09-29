@@ -46,6 +46,12 @@ func (p *QQMusicProvider) makeApiRequest(module, method string, params map[strin
 
 	cookie := map[string]interface{}{}
 
+	if p.cred.LoginType != 0 {
+		common["tmeLoginType"] = strconv.Itoa(p.cred.GetFormatedLoginType())
+	}
+
+	//pp.Println(common)
+
 	if p.cred.HasMusicKey() && p.cred.HasMusicID() {
 		common["authst"] = p.cred.MusicKey
 		common["qq"] = p.cred.MusicID
@@ -98,7 +104,7 @@ func (p *QQMusicProvider) makeApiRequest(module, method string, params map[strin
 		return gjson.Result{}, err
 	}
 	jsonResp := gjson.ParseBytes(response.Body())
-	//fmt.Println(response.String())
+	//pp.Println(response.String())
 	moduleKeyEscaped := strings.ReplaceAll(moduleKey, ".", "\\.")
 	if !jsonResp.Get(moduleKeyEscaped).Exists() {
 		return gjson.Result{}, fmt.Errorf("miaosic (qq): api request fail")
