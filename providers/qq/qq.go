@@ -19,13 +19,12 @@ type ApiConfig struct {
 }
 
 type QQMusicProvider struct {
-	cfg            ApiConfig
-	device         *Device
-	cred           *Credential
-	header         map[string]string
-	qimeiUpdated   bool //i don't care concurrence
-	tokenRefreshed bool
-	channel        string // "qq" or "wechat"
+	cfg          ApiConfig
+	device       *Device
+	cred         *Credential
+	header       map[string]string
+	qimeiUpdated bool   //i don't care concurrence
+	channel      string // "qq" or "wechat"
 }
 
 func (p *QQMusicProvider) GetName() string {
@@ -60,9 +59,8 @@ func NewQQMusicProvider(channel string) *QQMusicProvider {
 			"host":       "y.qq.com",
 			"user-agent": "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54",
 		},
-		qimeiUpdated:   false,
-		tokenRefreshed: false,
-		channel:        channel,
+		qimeiUpdated: false,
+		channel:      channel,
 	}
 	return val
 }
