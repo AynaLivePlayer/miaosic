@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var timeTagRegex = regexp.MustCompile("\\[[0-9]+:[0-9]+(\\.[0-9]+)?\\]")
+var timeTagRegex = regexp.MustCompile("\\[[0-9]+(\\.[0-9]+)?:[0-9]+(\\.[0-9]+)?\\]")
 
 type LyricLine struct {
 	Time  float64 `json:"time"` // in seconds
