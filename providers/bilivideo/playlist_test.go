@@ -51,7 +51,7 @@ func TestBilibiliVideo_GetPlaylist_Fav(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "AMV", playlist.Title)
-	require.GreaterOrEqual(t, 12, len(playlist.Medias))
+	require.LessOrEqual(t, 12, len(playlist.Medias))
 }
 
 func TestBilibiliVideo_GetPlaylist_Fav2(t *testing.T) {
@@ -62,7 +62,7 @@ func TestBilibiliVideo_GetPlaylist_Fav2(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "歌", playlist.Title)
-	require.GreaterOrEqual(t, 26, len(playlist.Medias))
+	require.LessOrEqual(t, 26, len(playlist.Medias))
 }
 
 func TestBilibiliVideo_GetPlaylist_Fav3(t *testing.T) {
@@ -84,5 +84,5 @@ func TestBilibiliVideo_GetPlaylist_Coll1(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "合集·巴以冲突-世界在关注什么？", playlist.Title)
-	require.Equal(t, 876, 95)
+	//require.Equal(t, 876, 95)
 }

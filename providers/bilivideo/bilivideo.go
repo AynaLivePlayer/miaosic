@@ -16,7 +16,7 @@ import (
 var _ = (miaosic.MediaProvider)(&BilibiliVideo{})
 
 var biliHeaders = map[string]string{
-	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+	"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36",
 	"Referer":    "https://www.bilibili.com/",
 	"Origin":     "https://www.bilibili.com",
 	"Cookie":     "buvid4=86D528BE-0AAA-CF7C-563F-48F8E3F133C140694-023050121-%2FNOyo2MbSyMEJ2aIs%2BzIdw%3D%3D",

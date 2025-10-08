@@ -87,6 +87,8 @@ func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, err
 			return nil, miaosic.ErrorExternalApi
 		}
 		result := gjson.ParseBytes(resp.Body())
+		//pp.Println(page, fmt.Sprintf(collApi, id, page))
+		//pp.Println(resp.String())
 		if result.Get("code").Int() != 0 {
 			return nil, errors.New("bilivideo: " + result.Get("message").String())
 		}
