@@ -3,11 +3,16 @@ package kugou
 import (
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
+	"os"
 	"strings"
 	"testing"
 )
 
 var testApi = NewKugou(false)
+
+func init() {
+	_ = testApi.RestoreSession(os.Getenv("kugou_session"))
+}
 
 func TestKugou_Search(t *testing.T) {
 	result, err := testApi.Search("心似烟火", 1, 20)

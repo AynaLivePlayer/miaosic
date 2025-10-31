@@ -3,6 +3,7 @@ package netease
 import (
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
+	"os"
 	"strings"
 	"testing"
 )
@@ -10,7 +11,7 @@ import (
 var api = NewNetease()
 
 func init() {
-	api.RestoreSession("put your session here")
+	api.RestoreSession(os.Getenv("netease_session"))
 }
 
 func TestNetease_Search(t *testing.T) {
