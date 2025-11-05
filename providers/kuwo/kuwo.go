@@ -76,7 +76,7 @@ func NewKuwo() *Kuwo {
 			// outdated: source=kwplayer_ar_10.8.2.1_qq.apk
 			// https://github.com/QiuYaohong/kuwoMusicApi/issues/24#issuecomment-2142606594
 			return deepcolor.NewGetRequestWithQuery(
-				"http://mobi.kuwo.cn/mobi.s?f=web&source=jiakong&type=convert_url_with_sign&br=320kmp3",
+				"http://mobi.kuwo.cn/mobi.s?f=web&source=kwplayercar_ar_6.0.0.9_B_jiakong_vh.apk&user=C_APK_guanwang_12609069939969033731&type=convert_url_with_sign&br=320kmp3",
 				map[string]any{
 					"rid": param.Meta.Identifier,
 					"br":  quality,
