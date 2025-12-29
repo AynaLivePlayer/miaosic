@@ -23,7 +23,113 @@ typedef struct { const char *p; ptrdiff_t n; } _GoString_;
 
 #include <stdlib.h>
 #include <string.h>
-#include "libmiaosic.h"
+typedef struct {
+	char* provider;
+	char* identifier;
+} MiaosicMetaData;
+
+typedef struct {
+	char* url;
+	unsigned char* data;
+	int data_len;
+} MiaosicPicture;
+
+typedef struct {
+	char* title;
+	char* artist;
+	MiaosicPicture cover;
+	char* album;
+	MiaosicMetaData meta;
+} MiaosicMediaInfo;
+
+typedef struct {
+	char* key;
+	char* value;
+} MiaosicHeaderPair;
+
+typedef struct {
+	char* url;
+	char* quality;
+	MiaosicHeaderPair* headers;
+	int header_len;
+} MiaosicMediaUrl;
+
+typedef struct {
+	int len;
+	MiaosicMediaInfo* items;
+} MiaosicMediaInfoList;
+
+typedef struct {
+	int len;
+	MiaosicMediaUrl* items;
+} MiaosicMediaUrlList;
+
+typedef struct {
+	char* title;
+	MiaosicMediaInfoList medias;
+	MiaosicMetaData meta;
+} MiaosicPlaylist;
+
+typedef struct {
+	int matched;
+	MiaosicMetaData meta;
+} MiaosicMatchResult;
+
+typedef struct {
+	char* url;
+	char* key;
+} MiaosicQrLoginSession;
+
+typedef struct {
+	int success;
+	char* message;
+} MiaosicQrLoginResult;
+
+typedef struct {
+	char* lang;
+	char* lyrics;
+} MiaosicLyrics;
+
+typedef struct {
+	int len;
+	MiaosicLyrics* items;
+} MiaosicLyricsList;
+
+typedef struct {
+	int value;
+} MiaosicBool;
+
+typedef struct {
+	char* value;
+} MiaosicString;
+
+typedef struct {
+	int len;
+	char** items;
+} MiaosicStringList;
+
+typedef enum {
+	MIAOSIC_RESULT_NONE = 0,
+	MIAOSIC_RESULT_BOOL = 1,
+	MIAOSIC_RESULT_STRING = 2,
+	MIAOSIC_RESULT_STRING_LIST = 3,
+	MIAOSIC_RESULT_META = 4,
+	MIAOSIC_RESULT_MEDIA_INFO = 5,
+	MIAOSIC_RESULT_MEDIA_INFO_LIST = 6,
+	MIAOSIC_RESULT_MEDIA_URL_LIST = 7,
+	MIAOSIC_RESULT_PLAYLIST = 8,
+	MIAOSIC_RESULT_MATCH = 9,
+	MIAOSIC_RESULT_QR_LOGIN_SESSION = 10,
+	MIAOSIC_RESULT_QR_LOGIN_RESULT = 11,
+	MIAOSIC_RESULT_LYRICS_LIST = 12
+} MiaosicResultType;
+
+typedef struct MiaosicResult {
+	int ok;
+	char* err;
+	MiaosicResultType result_type;
+	void* data;
+} MiaosicResult;
 
 #line 1 "cgo-generated-wrapper"
 
