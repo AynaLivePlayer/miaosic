@@ -115,6 +115,7 @@ func NewKuwo() *Kuwo {
 		},
 		deepcolor.ParserGJson,
 		func(resp *gjson.Result, lyrics *[]miaosic.Lyrics) error {
+			//pp.Println(resp.String())
 			lrcs := make([]string, 0)
 			resp.Get("data.lrclist").ForEach(func(key, value gjson.Result) bool {
 				lrcs = append(lrcs, fmt.Sprintf("[00:%s]%s", value.Get("time").String(), value.Get("lineLyric").String()))

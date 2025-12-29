@@ -243,7 +243,7 @@ func (p *QQMusicProvider) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics
 		if err == nil {
 			result = append(result, utils.ParseLyricWithLangDetection(lyric))
 		} else {
-			fmt.Println(err)
+			//fmt.Println(err)
 		}
 	}
 	if lyricEnc := resp.Get("data.trans").String(); lyricEnc != "" {
