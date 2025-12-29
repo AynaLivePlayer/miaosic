@@ -64,3 +64,79 @@ func MatchMediaByProvider(provider string, uri string) (MetaData, bool) {
 	}
 	return p.MatchMedia(uri)
 }
+
+func loginableByProvider(provider string) (Loginable, error) {
+	p, ok := GetProvider(provider)
+	if !ok {
+		return nil, ErrorNoSuchProvider
+	}
+	loginable, ok := p.(Loginable)
+	if !ok {
+		return nil, ErrorProviderNotLoginable
+	}
+	return loginable, nil
+}
+
+func LoginByProvider(provider, username, password string) error {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return err
+	}
+	return loginable.Login(username, password)
+}
+
+func LogoutByProvider(provider string) error {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return err
+	}
+	return loginable.Logout()
+}
+
+func IsLoginByProvider(provider string) (bool, error) {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return false, err
+	}
+	return loginable.IsLogin(), nil
+}
+
+func RefreshLoginByProvider(provider string) error {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return err
+	}
+	return loginable.RefreshLogin()
+}
+
+func QrLoginByProvider(provider string) (*QrLoginSession, error) {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return nil, err
+	}
+	return loginable.QrLogin()
+}
+
+func QrLoginVerifyByProvider(provider string, qrlogin *QrLoginSession) (*QrLoginResult, error) {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return nil, err
+	}
+	return loginable.QrLoginVerify(qrlogin)
+}
+
+func RestoreSessionByProvider(provider, session string) error {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return err
+	}
+	return loginable.RestoreSession(session)
+}
+
+func SaveSessionByProvider(provider string) (string, error) {
+	loginable, err := loginableByProvider(provider)
+	if err != nil {
+		return "", err
+	}
+	return loginable.SaveSession(), nil
+}
