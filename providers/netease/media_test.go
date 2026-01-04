@@ -81,16 +81,17 @@ func TestNetease_GetMediaUrl_Login(t *testing.T) {
 }
 
 // todo: unable to get url for this song
+// 无版权歌曲
 func TestNetease_GetMediaUrl_Vip(t *testing.T) {
 	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
 		Identifier: "28038055",
 	}
-	urls, err := api.GetMediaUrl(meta, miaosic.QualityAny)
-	require.NoError(t, err)
-	require.NotEmpty(t, urls)
-	require.True(t, strings.Contains(urls[0].Url, "http"))
-	t.Log(urls[0].Url)
+	_, err := api.GetMediaUrl(meta, miaosic.QualityAny)
+	require.Error(t, err)
+	//require.NotEmpty(t, urls)
+	//require.True(t, strings.Contains(urls[0].Url, "http"))
+	//t.Log(urls[0].Url)
 }
 
 //func TestNetease_GetPlaylist(t *testing.T) {

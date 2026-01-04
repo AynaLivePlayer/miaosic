@@ -165,7 +165,7 @@ func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([
 		return nil, fmt.Errorf("miaosic (netease): no result found")
 	}
 	if result.Data[0].Code != 200 {
-		return nil, fmt.Errorf("miaosic (netease): netease code not equal to 200")
+		return nil, fmt.Errorf("miaosic (netease): netease code not equal to 200, might no copyright")
 	}
 	urls := make([]miaosic.MediaUrl, 0)
 	for _, u := range result.Data {
