@@ -1,11 +1,12 @@
 package netease
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/stretchr/testify/require"
 )
 
 var api = NewNetease()
@@ -26,6 +27,7 @@ func TestNetease_Search2(t *testing.T) {
 	require.NoError(t, err)
 	media := result[0]
 	require.Equal(t, "花粥,王胜娚", result[0].Artist)
+	require.Equal(t, []string{"花粥", "王胜娚"}, result[0].Artists)
 	urls, err := api.GetMediaUrl(media.Meta, miaosic.QualityAny)
 	require.NoError(t, err)
 	require.NotEmpty(t, urls)

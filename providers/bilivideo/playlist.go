@@ -3,12 +3,13 @@ package bilivideo
 import (
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/aynakeya/deepcolor/dphttp"
-	"github.com/tidwall/gjson"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/aynakeya/deepcolor/dphttp"
+	"github.com/tidwall/gjson"
 )
 
 const (
@@ -71,7 +72,6 @@ func (n *BilibiliVideo) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
 var collApi = "https://api.bilibili.com/x/polymer/web-space/seasons_archives_list?mid=0&season_id=%s&sort_reverse=false&page_num=%d&page_size=30"
 
 func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, error) {
-
 	playlist := &miaosic.Playlist{
 		Meta:   miaosic.MetaData{n.GetName(), makePlaylistId(playlistCollection, id)},
 		Medias: make([]miaosic.MediaInfo, 0),
@@ -99,9 +99,11 @@ func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, err
 		}
 		archives.ForEach(func(key, value gjson.Result) bool {
 			playlist.Medias = append(playlist.Medias, miaosic.MediaInfo{
-				Title:  value.Get("title").String(),
-				Cover:  miaosic.Picture{Url: value.Get("pic").String()},
-				Artist: id,
+				Title: value.Get("title").String(),
+				Cover: miaosic.Picture{Url: value.Get("pic").String()},
+				// artists not found
+				Artist:  id,
+				Artists: []string{id},
 				Meta: miaosic.MetaData{
 					Provider:   n.GetName(),
 					Identifier: value.Get("bvid").String(),
@@ -148,9 +150,10 @@ func (n *BilibiliVideo) getFavPlaylist(id string) (*miaosic.Playlist, error) {
 				return true
 			}
 			playlist.Medias = append(playlist.Medias, miaosic.MediaInfo{
-				Title:  value.Get("title").String(),
-				Cover:  miaosic.Picture{Url: value.Get("cover").String()},
-				Artist: value.Get("upper.name").String(),
+				Title:   value.Get("title").String(),
+				Cover:   miaosic.Picture{Url: value.Get("cover").String()},
+				Artist:  value.Get("upper.name").String(),
+				Artists: []string{value.Get("upper.name").String()},
 				Meta: miaosic.MetaData{
 					Provider:   n.GetName(),
 					Identifier: value.Get("bvid").String() + "?p=" + value.Get("page").String(),

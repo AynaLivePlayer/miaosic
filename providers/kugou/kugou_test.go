@@ -1,11 +1,12 @@
 package kugou
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/stretchr/testify/require"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/stretchr/testify/require"
 )
 
 var testApi = NewKugou(false)
@@ -46,9 +47,20 @@ func TestKugou_GetMediaInfo2(t *testing.T) {
 	t.Log(result)
 }
 
+func TestKugou_GetMediaInfo3_Verify_Artists(t *testing.T) {
+	// 雪
+	meta := miaosic.MetaData{Identifier: "dd789e543aadbaeacf0c92aee592a601", Provider: testApi.GetName()}
+	result, err := testApi.GetMediaInfo(meta)
+	require.NoError(t, err, "GetMediaInfo Error")
+	require.NotNil(t, result, "GetMediaInfo Result Empty")
+	require.Equal(t, []string{"杜婧荧", "王艺翔"}, result.Artists)
+	require.NotEmpty(t, result, "GetMediaInfo Result Empty")
+	t.Log(result)
+}
+
 func TestKugou_GetMediaUrl(t *testing.T) {
-	meta := miaosic.MetaData{Identifier: strings.ToLower("b9a6c3eee00a7df6ff389ad383be5cb1"), Provider: testApi.GetName()}
-	result, err := testApi.GetMediaUrl(meta, miaosic.QualitySQ)
+	meta := miaosic.MetaData{Identifier: strings.ToLower("729723fa4afc5b33561f7f78489cacdf"), Provider: testApi.GetName()}
+	result, err := testApi.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err, "GetMediaUrl Error")
 	require.NotEmpty(t, result, "GetMediaUrl Result Empty")
 	t.Log(result)

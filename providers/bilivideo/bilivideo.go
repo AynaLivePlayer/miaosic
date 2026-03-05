@@ -3,6 +3,8 @@ package bilivideo
 import (
 	"errors"
 	"fmt"
+	"regexp"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/aynakeya/deepcolor"
@@ -10,7 +12,6 @@ import (
 	"github.com/jinzhu/copier"
 	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
-	"regexp"
 )
 
 var _ = (miaosic.MediaProvider)(&BilibiliVideo{})
@@ -58,6 +59,7 @@ func NewBilibiliViedo() *BilibiliVideo {
 			}
 			media.Title = result.Get("data.View.title").String()
 			media.Artist = result.Get("data.View.owner.name").String()
+			media.Artists = []string{media.Artist}
 			media.Cover.Url = result.Get("data.View.pic").String()
 			return nil
 		})
@@ -96,9 +98,10 @@ func NewBilibiliViedo() *BilibiliVideo {
 			r := regexp.MustCompile("</?em[^>]*>")
 			resp.Get("data.result").ForEach(func(key, value gjson.Result) bool {
 				*result = append(*result, miaosic.MediaInfo{
-					Title:  r.ReplaceAllString(value.Get("title").String(), ""),
-					Cover:  miaosic.Picture{Url: "https:" + value.Get("pic").String()},
-					Artist: value.Get("author").String(),
+					Title:   r.ReplaceAllString(value.Get("title").String(), ""),
+					Cover:   miaosic.Picture{Url: "https:" + value.Get("pic").String()},
+					Artist:  value.Get("author").String(),
+					Artists: []string{value.Get("author").String()},
 					Meta: miaosic.MetaData{
 						Provider:   pvdr.GetName(),
 						Identifier: value.Get("bvid").String(),

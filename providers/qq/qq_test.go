@@ -47,6 +47,15 @@ func TestQQ_GetMediaInfo(t *testing.T) {
 	pp.Println(result)
 }
 
+func TestQQ_GetMediaInfo2(t *testing.T) {
+	meta := miaosic.MetaData{Identifier: "001gP4t40Q0EO0", Provider: testApi.GetName()}
+	result, err := testApi.GetMediaInfo(meta)
+	require.NoError(t, err, "GetMediaInfo Error")
+	require.NotEmpty(t, result, "GetMediaInfo Result Empty")
+	require.Equal(t, "影子小姐", result.Title)
+	//pp.Println(result)
+}
+
 func TestQQ_GetMediaUrl(t *testing.T) {
 	// no copy right
 	meta := miaosic.MetaData{Identifier: "002pCkT73uKyPL", Provider: testApi.GetName()}
@@ -56,6 +65,14 @@ func TestQQ_GetMediaUrl(t *testing.T) {
 
 func TestQQ_GetMediaUrl2(t *testing.T) {
 	meta := miaosic.MetaData{Identifier: "000SMH6F05TVNQ", Provider: testApi.GetName()}
+	result, err := testApi.GetMediaUrl(meta, QualityMP3320)
+	require.NoError(t, err, "GetMediaUrl Error")
+	require.NotEmpty(t, result, "GetMediaUrl Result Empty")
+	//t.Log(result)
+}
+
+func TestQQ_GetMediaUrl3(t *testing.T) {
+	meta := miaosic.MetaData{Identifier: "001gP4t40Q0EO0", Provider: testApi.GetName()}
 	result, err := testApi.GetMediaUrl(meta, QualityMP3320)
 	require.NoError(t, err, "GetMediaUrl Error")
 	require.NotEmpty(t, result, "GetMediaUrl Result Empty")

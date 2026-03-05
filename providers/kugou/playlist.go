@@ -4,12 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/aynakeya/deepcolor"
-	"github.com/tidwall/gjson"
 	"net/http"
 	"regexp"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/aynakeya/deepcolor"
+	"github.com/tidwall/gjson"
 )
 
 var playlistIdRegex = regexp.MustCompile(`gcid_(\w+)`)
@@ -142,11 +143,18 @@ func (k *Kugou) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) {
 		count := int(result.Get("data.count").Int())
 		medias := result.Get("data.songs")
 		medias.ForEach(func(key, value gjson.Result) bool {
+			artists := make([]string, 0)
+			value.Get("singerinfo").ForEach(func(_, val2 gjson.Result) bool {
+				artists = append(artists, val2.Get("name").String())
+				return true
+			})
+			value.Get("singerinfo.#.name").Array()
 			playlist.Medias = append(playlist.Medias, miaosic.MediaInfo{
-				Title:  value.Get("name").String(),
-				Cover:  miaosic.Picture{Url: strings.Replace(value.Get("cover").String(), "{size}", "128", 1)},
-				Artist: value.Get("singerinfo.0.name").String(),
-				Album:  value.Get("albuminfo.name").String(),
+				Title:   value.Get("name").String(),
+				Cover:   miaosic.Picture{Url: strings.Replace(value.Get("cover").String(), "{size}", "128", 1)},
+				Artist:  strings.Join(artists, ","),
+				Artists: artists,
+				Album:   value.Get("albuminfo.name").String(),
 				Meta: miaosic.MetaData{
 					Provider:   k.GetName(),
 					Identifier: value.Get("hash").String(),

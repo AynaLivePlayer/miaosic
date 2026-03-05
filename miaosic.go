@@ -55,11 +55,13 @@ func NewMediaUrl(url string, quality Quality) MediaUrl {
 }
 
 type MediaInfo struct {
-	Title  string   `json:"title"`
-	Artist string   `json:"artist"`
-	Cover  Picture  `json:"cover"`
-	Album  string   `json:"album"`
-	Meta   MetaData `json:"meta"`
+	Title string `json:"title"`
+	// Artist is artist in string will be deprecated in the future,  use Artists instead
+	Artist  string   `json:"artist"`
+	Artists []string `json:"artists"`
+	Cover   Picture  `json:"cover"`
+	Album   string   `json:"album"`
+	Meta    MetaData `json:"meta"`
 }
 
 type Playlist struct {

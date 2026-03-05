@@ -1,10 +1,11 @@
 package netease
 
 import (
+	"strconv"
+
 	"github.com/AynaLivePlayer/miaosic"
 	neteaseApi "github.com/XiaoMengXinX/Music163Api-Go/api"
 	"github.com/spf13/cast"
-	"strconv"
 )
 
 func (n *Netease) MatchPlaylist(uri string) (miaosic.MetaData, bool) {
@@ -70,11 +71,13 @@ func (n *Netease) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) 
 			break
 		}
 		for i := 0; i < cnt; i++ {
+			artist, artists := _neteaseGetArtistNames(result2.Songs[i])
 			playlist.Medias = append(playlist.Medias, miaosic.MediaInfo{
-				Title:  result2.Songs[i].Name,
-				Artist: _neteaseGetArtistNames(result2.Songs[i]),
-				Cover:  miaosic.Picture{Url: result2.Songs[i].Al.PicUrl},
-				Album:  result2.Songs[i].Al.Name,
+				Title:   result2.Songs[i].Name,
+				Artist:  artist,
+				Artists: artists,
+				Cover:   miaosic.Picture{Url: result2.Songs[i].Al.PicUrl},
+				Album:   result2.Songs[i].Al.Name,
 				Meta: miaosic.MetaData{
 					Provider:   n.GetName(),
 					Identifier: strconv.Itoa(result2.Songs[i].Id),

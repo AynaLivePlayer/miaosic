@@ -26,6 +26,7 @@ please figure it out by yourself.
 
 1. Current implementation of source registration is **not** threading-safe, 
 please implement thread-safe version by yourself in your project require multi-thread access (for example, web).
+2. local, kuwo hasn't implement Artists field yet
 
 ## Disclaimer
 

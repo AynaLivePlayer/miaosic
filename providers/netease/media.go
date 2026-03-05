@@ -2,17 +2,18 @@ package netease
 
 import (
 	"fmt"
+	"net/http"
+	"regexp"
+	"slices"
+	"strconv"
+	"strings"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/utils"
 	neteaseApi "github.com/XiaoMengXinX/Music163Api-Go/api"
 	neteaseTypes "github.com/XiaoMengXinX/Music163Api-Go/types"
 	neteaseUtil "github.com/XiaoMengXinX/Music163Api-Go/utils"
 	"github.com/spf13/cast"
-	"net/http"
-	"regexp"
-	"slices"
-	"strconv"
-	"strings"
 )
 
 type Netease struct {
@@ -102,10 +103,11 @@ func (n *Netease) Search(keyword string, page, size int) ([]miaosic.MediaInfo, e
 			artists = append(artists, a.Name)
 		}
 		medias = append(medias, miaosic.MediaInfo{
-			Title:  song.Name,
-			Artist: strings.Join(artists, ","),
-			Cover:  miaosic.Picture{},
-			Album:  song.Album.Name,
+			Title:   song.Name,
+			Artist:  strings.Join(artists, ","),
+			Artists: artists,
+			Cover:   miaosic.Picture{},
+			Album:   song.Album.Name,
 			Meta: miaosic.MetaData{
 				Provider:   n.GetName(),
 				Identifier: strconv.Itoa(song.Id),
@@ -115,12 +117,12 @@ func (n *Netease) Search(keyword string, page, size int) ([]miaosic.MediaInfo, e
 	return medias, nil
 }
 
-func _neteaseGetArtistNames(data neteaseTypes.SongDetailData) string {
+func _neteaseGetArtistNames(data neteaseTypes.SongDetailData) (string, []string) {
 	artists := make([]string, 0)
 	for _, a := range data.Ar {
 		artists = append(artists, a.Name)
 	}
-	return strings.Join(artists, ",")
+	return strings.Join(artists, ","), artists
 }
 
 func (n *Netease) GetMediaInfo(meta miaosic.MetaData) (media miaosic.MediaInfo, err error) {
@@ -136,7 +138,7 @@ func (n *Netease) GetMediaInfo(meta miaosic.MetaData) (media miaosic.MediaInfo, 
 	media.Title = result.Songs[0].Name
 	media.Cover.Url = result.Songs[0].Al.PicUrl
 	media.Album = result.Songs[0].Al.Name
-	media.Artist = _neteaseGetArtistNames(result.Songs[0])
+	media.Artist, media.Artists = _neteaseGetArtistNames(result.Songs[0])
 	media.Meta = meta
 	return media, nil
 }

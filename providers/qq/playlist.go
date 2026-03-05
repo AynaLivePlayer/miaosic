@@ -2,11 +2,12 @@ package qq
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
-	"regexp"
-	"strings"
 )
 
 var playlistRegexp = regexp.MustCompile(`ryqq/playlist/(\d+)`)
@@ -70,11 +71,12 @@ func (p *QQMusicProvider) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist,
 				return true
 			})
 			playlist.Medias = append(playlist.Medias, miaosic.MediaInfo{
-				Title:  info.Get("title").String(),
-				Artist: strings.Join(artistNames, ","),
-				Album:  info.Get("album.title").String(),
-				Cover:  miaosic.Picture{Url: coverURL},
-				Meta:   miaosic.MetaData{Provider: p.GetName(), Identifier: info.Get("mid").String()},
+				Title:   info.Get("title").String(),
+				Artist:  strings.Join(artistNames, ","),
+				Artists: artistNames,
+				Album:   info.Get("album.title").String(),
+				Cover:   miaosic.Picture{Url: coverURL},
+				Meta:    miaosic.MetaData{Provider: p.GetName(), Identifier: info.Get("mid").String()},
 			})
 			return true
 		})

@@ -7,18 +7,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/providers"
-	"github.com/AynaLivePlayer/miaosic/utils"
-	"github.com/aynakeya/deepcolor"
-	"github.com/aynakeya/deepcolor/dphttp"
-	"github.com/tidwall/gjson"
 	"net/http"
 	"net/url"
 	"regexp"
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/providers"
+	"github.com/AynaLivePlayer/miaosic/utils"
+	"github.com/aynakeya/deepcolor"
+	"github.com/aynakeya/deepcolor/dphttp"
+	"github.com/tidwall/gjson"
 )
 
 var header = map[string]string{
@@ -110,7 +111,8 @@ func NewKugou(useLite bool) *Kugou {
 				return errors.New("failed to find required data")
 			}
 			media.Title = result.Get("data.0.name").String()
-			media.Artist = result.Get("data.0.singername").String()
+			media.Artists = strings.Split(result.Get("data.0.singername").String(), "、")
+			media.Artist = strings.Join(media.Artists, ",")
 			media.Album = result.Get("data.0.albumname").String()
 			media.Cover.Url = strings.Replace(result.Get("data.0.info.image").String(), "{size}", result.Get("data.0.info.imgsize.0").String(), 1)
 			return nil

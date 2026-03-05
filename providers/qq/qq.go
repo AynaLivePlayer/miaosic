@@ -2,12 +2,13 @@ package qq
 
 import (
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/utils"
-	"github.com/tidwall/gjson"
 	"regexp"
 	"slices"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/utils"
+	"github.com/tidwall/gjson"
 )
 
 type ApiConfig struct {
@@ -114,11 +115,12 @@ func (p *QQMusicProvider) Search(keyword string, page, size int) ([]miaosic.Medi
 		}
 
 		medias = append(medias, miaosic.MediaInfo{
-			Title:  title,
-			Artist: artist,
-			Album:  info.Get("album.title").String(),
-			Cover:  miaosic.Picture{Url: coverURL},
-			Meta:   miaosic.MetaData{Provider: p.GetName(), Identifier: mid},
+			Title:   title,
+			Artist:  artist,
+			Artists: artistNames,
+			Album:   info.Get("album.title").String(),
+			Cover:   miaosic.Picture{Url: coverURL},
+			Meta:    miaosic.MetaData{Provider: p.GetName(), Identifier: mid},
 		})
 		return true
 	})
@@ -164,11 +166,12 @@ func (p *QQMusicProvider) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo
 	}
 
 	return miaosic.MediaInfo{
-		Title:  title,
-		Artist: artist,
-		Album:  albumTitle,
-		Cover:  miaosic.Picture{Url: coverURL},
-		Meta:   miaosic.MetaData{Provider: p.GetName(), Identifier: mid},
+		Title:   title,
+		Artist:  artist,
+		Artists: artistNames,
+		Album:   albumTitle,
+		Cover:   miaosic.Picture{Url: coverURL},
+		Meta:    miaosic.MetaData{Provider: p.GetName(), Identifier: mid},
 	}, nil
 }
 
