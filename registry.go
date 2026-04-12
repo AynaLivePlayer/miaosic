@@ -1,9 +1,10 @@
 package miaosic
 
 import (
+	"sort"
+
 	"github.com/aynakeya/deepcolor"
 	"github.com/aynakeya/deepcolor/dphttp"
-	"sort"
 )
 
 var Requester dphttp.IRequester = deepcolor.NewRestyRequester()
@@ -13,35 +14,42 @@ func init() {
 	deepcolor.SetDefaultRequester(Requester)
 }
 
-var _providers map[string]MediaProvider = make(map[string]MediaProvider)
+type Registry struct {
+	providers map[string]MediaProvider
+}
 
-func RegisterProvider(provider MediaProvider) {
-	if _, ok := _providers[provider.GetName()]; ok {
+func NewRegistry() *Registry {
+	return &Registry{
+		providers: make(map[string]MediaProvider),
+	}
+}
+
+func (r *Registry) RegisterProvider(provider MediaProvider) {
+	if _, ok := r.providers[provider.GetName()]; ok {
 		panic("provider " + provider.GetName() + " already exists")
-		return
 	}
-	_providers[provider.GetName()] = provider
+	r.providers[provider.GetName()] = provider
 }
 
-func UnregisterProvider(name string) {
-	_, ok := _providers[name]
+func (r *Registry) UnregisterProvider(name string) {
+	_, ok := r.providers[name]
 	if ok {
-		delete(_providers, name)
+		delete(r.providers, name)
 	}
 }
 
-func UnregisterAllProvider() {
-	_providers = make(map[string]MediaProvider)
+func (r *Registry) UnregisterAllProvider() {
+	r.providers = make(map[string]MediaProvider)
 }
 
-func GetProvider(name string) (MediaProvider, bool) {
-	provider, ok := _providers[name]
+func (r *Registry) GetProvider(name string) (MediaProvider, bool) {
+	provider, ok := r.providers[name]
 	return provider, ok
 }
 
-func ListAvailableProviders() []string {
+func (r *Registry) ListAvailableProviders() []string {
 	var names []string
-	for name := range _providers {
+	for name := range r.providers {
 		names = append(names, name)
 	}
 	sort.Slice(names, func(i, j int) bool {

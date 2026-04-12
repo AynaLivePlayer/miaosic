@@ -6,3 +6,4 @@ cmd/miaosic/session.bak.json
 libmiaosic/libmiaosic.so
 data
 .codex
+.codex-session

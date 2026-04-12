@@ -1,7 +1,33 @@
 package miaosic
 
+var DefaultRegistry = NewRegistry()
+
+func RegisterProvider(provider MediaProvider) {
+	DefaultRegistry.RegisterProvider(provider)
+}
+
+func UnregisterProvider(name string) {
+	DefaultRegistry.UnregisterProvider(name)
+}
+
+func UnregisterAllProvider() {
+	DefaultRegistry.UnregisterAllProvider()
+}
+
+func GetProvider(name string) (MediaProvider, bool) {
+	return DefaultRegistry.GetProvider(name)
+}
+
+func ListAvailableProviders() []string {
+	return DefaultRegistry.ListAvailableProviders()
+}
+
 func SearchByProvider(provider string, keyword string, page, size int) ([]MediaInfo, error) {
-	p, ok := GetProvider(provider)
+	return DefaultRegistry.SearchByProvider(provider, keyword, page, size)
+}
+
+func (r *Registry) SearchByProvider(provider string, keyword string, page, size int) ([]MediaInfo, error) {
+	p, ok := r.GetProvider(provider)
 	if !ok {
 		return nil, ErrorNoSuchProvider
 	}
@@ -9,7 +35,11 @@ func SearchByProvider(provider string, keyword string, page, size int) ([]MediaI
 }
 
 func GetMediaUrl(meta MetaData, quality Quality) ([]MediaUrl, error) {
-	provider, ok := GetProvider(meta.Provider)
+	return DefaultRegistry.GetMediaUrl(meta, quality)
+}
+
+func (r *Registry) GetMediaUrl(meta MetaData, quality Quality) ([]MediaUrl, error) {
+	provider, ok := r.GetProvider(meta.Provider)
 	if !ok {
 		return nil, ErrorNoSuchProvider
 	}
@@ -17,7 +47,11 @@ func GetMediaUrl(meta MetaData, quality Quality) ([]MediaUrl, error) {
 }
 
 func GetMediaInfo(meta MetaData) (MediaInfo, error) {
-	provider, ok := GetProvider(meta.Provider)
+	return DefaultRegistry.GetMediaInfo(meta)
+}
+
+func (r *Registry) GetMediaInfo(meta MetaData) (MediaInfo, error) {
+	provider, ok := r.GetProvider(meta.Provider)
 	if !ok {
 		return MediaInfo{}, ErrorNoSuchProvider
 	}
@@ -25,7 +59,11 @@ func GetMediaInfo(meta MetaData) (MediaInfo, error) {
 }
 
 func GetMediaLyric(meta MetaData) ([]Lyrics, error) {
-	provider, ok := GetProvider(meta.Provider)
+	return DefaultRegistry.GetMediaLyric(meta)
+}
+
+func (r *Registry) GetMediaLyric(meta MetaData) ([]Lyrics, error) {
+	provider, ok := r.GetProvider(meta.Provider)
 	if !ok {
 		return nil, ErrorNoSuchProvider
 	}
@@ -33,7 +71,11 @@ func GetMediaLyric(meta MetaData) ([]Lyrics, error) {
 }
 
 func MatchPlaylistByProvider(provider string, uri string) (MetaData, bool) {
-	p, ok := GetProvider(provider)
+	return DefaultRegistry.MatchPlaylistByProvider(provider, uri)
+}
+
+func (r *Registry) MatchPlaylistByProvider(provider string, uri string) (MetaData, bool) {
+	p, ok := r.GetProvider(provider)
 	if !ok {
 		return MetaData{}, false
 	}
@@ -41,7 +83,11 @@ func MatchPlaylistByProvider(provider string, uri string) (MetaData, bool) {
 }
 
 func GetPlaylist(meta MetaData) (*Playlist, error) {
-	p, ok := GetProvider(meta.Provider)
+	return DefaultRegistry.GetPlaylist(meta)
+}
+
+func (r *Registry) GetPlaylist(meta MetaData) (*Playlist, error) {
+	p, ok := r.GetProvider(meta.Provider)
 	if !ok {
 		return nil, ErrorNoSuchProvider
 	}
@@ -49,7 +95,11 @@ func GetPlaylist(meta MetaData) (*Playlist, error) {
 }
 
 func MatchMedia(keyword string) (MetaData, bool) {
-	for _, p := range _providers {
+	return DefaultRegistry.MatchMedia(keyword)
+}
+
+func (r *Registry) MatchMedia(keyword string) (MetaData, bool) {
+	for _, p := range r.providers {
 		if meta, ok := p.MatchMedia(keyword); ok {
 			return meta, true
 		}
@@ -58,15 +108,19 @@ func MatchMedia(keyword string) (MetaData, bool) {
 }
 
 func MatchMediaByProvider(provider string, uri string) (MetaData, bool) {
-	p, ok := GetProvider(provider)
+	return DefaultRegistry.MatchMediaByProvider(provider, uri)
+}
+
+func (r *Registry) MatchMediaByProvider(provider string, uri string) (MetaData, bool) {
+	p, ok := r.GetProvider(provider)
 	if !ok {
 		return MetaData{}, false
 	}
 	return p.MatchMedia(uri)
 }
 
-func loginableByProvider(provider string) (Loginable, error) {
-	p, ok := GetProvider(provider)
+func (r *Registry) loginableByProvider(provider string) (Loginable, error) {
+	p, ok := r.GetProvider(provider)
 	if !ok {
 		return nil, ErrorNoSuchProvider
 	}
@@ -78,7 +132,11 @@ func loginableByProvider(provider string) (Loginable, error) {
 }
 
 func LoginByProvider(provider, username, password string) error {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.LoginByProvider(provider, username, password)
+}
+
+func (r *Registry) LoginByProvider(provider, username, password string) error {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return err
 	}
@@ -86,7 +144,11 @@ func LoginByProvider(provider, username, password string) error {
 }
 
 func LogoutByProvider(provider string) error {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.LogoutByProvider(provider)
+}
+
+func (r *Registry) LogoutByProvider(provider string) error {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return err
 	}
@@ -94,7 +156,11 @@ func LogoutByProvider(provider string) error {
 }
 
 func IsLoginByProvider(provider string) (bool, error) {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.IsLoginByProvider(provider)
+}
+
+func (r *Registry) IsLoginByProvider(provider string) (bool, error) {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return false, err
 	}
@@ -102,7 +168,11 @@ func IsLoginByProvider(provider string) (bool, error) {
 }
 
 func RefreshLoginByProvider(provider string) error {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.RefreshLoginByProvider(provider)
+}
+
+func (r *Registry) RefreshLoginByProvider(provider string) error {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return err
 	}
@@ -110,7 +180,11 @@ func RefreshLoginByProvider(provider string) error {
 }
 
 func QrLoginByProvider(provider string) (*QrLoginSession, error) {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.QrLoginByProvider(provider)
+}
+
+func (r *Registry) QrLoginByProvider(provider string) (*QrLoginSession, error) {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +192,11 @@ func QrLoginByProvider(provider string) (*QrLoginSession, error) {
 }
 
 func QrLoginVerifyByProvider(provider string, qrlogin *QrLoginSession) (*QrLoginResult, error) {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.QrLoginVerifyByProvider(provider, qrlogin)
+}
+
+func (r *Registry) QrLoginVerifyByProvider(provider string, qrlogin *QrLoginSession) (*QrLoginResult, error) {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +204,11 @@ func QrLoginVerifyByProvider(provider string, qrlogin *QrLoginSession) (*QrLogin
 }
 
 func RestoreSessionByProvider(provider, session string) error {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.RestoreSessionByProvider(provider, session)
+}
+
+func (r *Registry) RestoreSessionByProvider(provider, session string) error {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return err
 	}
@@ -134,7 +216,11 @@ func RestoreSessionByProvider(provider, session string) error {
 }
 
 func SaveSessionByProvider(provider string) (string, error) {
-	loginable, err := loginableByProvider(provider)
+	return DefaultRegistry.SaveSessionByProvider(provider)
+}
+
+func (r *Registry) SaveSessionByProvider(provider string) (string, error) {
+	loginable, err := r.loginableByProvider(provider)
 	if err != nil {
 		return "", err
 	}
