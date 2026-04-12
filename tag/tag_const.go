@@ -6,6 +6,7 @@ const (
 	FormatID3v2_4 = "ID3v2.4"
 	FormatMP4     = "MP4"
 	FormatVORBIS  = "VORBIS"
+	FormatRIFF    = "RIFF"
 )
 
 const (

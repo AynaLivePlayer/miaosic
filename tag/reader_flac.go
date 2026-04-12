@@ -8,7 +8,14 @@ import (
 	"strings"
 )
 
-func ReadFLACTags(r io.ReadSeeker, mime string) (Metadata, error) {
+func ReadFLACTags(r io.ReadSeeker) (Metadata, error) {
+	mime, err := detectMime(r)
+	if err != nil {
+		return Metadata{}, err
+	}
+	if _, err = r.Seek(0, io.SeekStart); err != nil {
+		return Metadata{}, err
+	}
 	meta := Metadata{
 		Mimetype: mime,
 		Format:   FormatVORBIS,

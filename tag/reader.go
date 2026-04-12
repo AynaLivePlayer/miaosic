@@ -1,9 +1,10 @@
 package tag
 
 import (
-	"github.com/dhowden/tag"
-	"github.com/gabriel-vasile/mimetype"
+	"bytes"
 	"io"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 func Read(r io.ReadSeeker) (Metadata, error) {
@@ -12,56 +13,41 @@ func Read(r io.ReadSeeker) (Metadata, error) {
 		return Metadata{}, err
 	}
 
-	b := make([]byte, 512)
-	_, err = io.ReadFull(r, b)
-	if err != nil {
+	b := make([]byte, 16)
+	_, err = r.Read(b)
+	if err != nil && err != io.EOF {
 		return Metadata{}, err
 	}
-	mimeType := mimetype.Detect(b).String()
-	_, err = r.Seek(0, io.SeekStart)
 	switch {
-	case string(b[0:4]) == "fLaC":
-		return ReadFLACTags(r, mimeType)
-	//case string(b[0:4]) == "OggS":
-	//	return ReadOGGTags(r)
-	//case string(b[4:8]) == "ftyp":
-	//	return ReadAtoms(r)
-	case string(b[0:3]) == "ID3":
-		return ReadID3v2Tags(r, mimeType)
-		//case string(b[0:4]) == "DSD ":
-		//	return ReadDSFTags(r)
+	case len(b) >= 4 && string(b[0:4]) == "fLaC":
+		return ReadFLACTags(r)
+	case len(b) >= 12 && string(b[0:4]) == "RIFF" && string(b[8:12]) == "WAVE":
+		return ReadWAVTags(r)
+	case len(b) >= 3 && string(b[0:3]) == "ID3":
+		return ReadID3v2Tags(r)
+	case len(b) >= 4 && bytes.Equal(b[0:4], []byte("OggS")):
+		return ReadOGGTags(r)
+	case len(b) >= 8 && string(b[4:8]) == "ftyp":
+		return ReadMP4Tags(r)
 	}
-	return fallbackRead(r, mimeType)
+	return fallbackRead(r)
 }
 
-func fallbackRead(r io.ReadSeeker, mime string) (Metadata, error) {
-	meta := Metadata{
-		Mimetype: mime,
-	}
-	m, err := tag.ReadFrom(r)
+func detectMime(r io.ReadSeeker) (string, error) {
+	pos, err := r.Seek(0, io.SeekCurrent)
 	if err != nil {
-		return Metadata{}, err
+		return "", err
 	}
-	meta.Format = string(m.Format())
-	meta.Title = m.Title()
-	meta.Artist = m.Artist()
-	meta.Album = m.Album()
-	meta.Lyrics = []Lyrics{}
-	if m.Lyrics() != "" {
-		meta.Lyrics = append(meta.Lyrics, Lyrics{
-			Lang:   "unk",
-			Lyrics: m.Lyrics(),
-		})
+	if _, err = r.Seek(0, io.SeekStart); err != nil {
+		return "", err
 	}
-	meta.Pictures = []Picture{}
-	if m.Picture() != nil {
-		p := m.Picture()
-		meta.Pictures = append(meta.Pictures, Picture{
-			Mimetype:    p.MIMEType,
-			Type:        PictureTypeFrontCover,
-			Description: p.Description,
-			Data:        p.Data,
-		})
+	b := make([]byte, 512)
+	n, readErr := r.Read(b)
+	if _, err = r.Seek(pos, io.SeekStart); err != nil {
+		return "", err
 	}
-	return meta, nil
+	if readErr != nil && readErr != io.EOF {
+		return "", readErr
+	}
+	return mimetype.Detect(b[:n]).String(), nil
 }

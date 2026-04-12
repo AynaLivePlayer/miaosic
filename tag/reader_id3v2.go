@@ -5,7 +5,14 @@ import (
 	"io"
 )
 
-func ReadID3v2Tags(r io.ReadSeeker, mime string) (Metadata, error) {
+func ReadID3v2Tags(r io.ReadSeeker) (Metadata, error) {
+	mime, err := detectMime(r)
+	if err != nil {
+		return Metadata{}, err
+	}
+	if _, err = r.Seek(0, io.SeekStart); err != nil {
+		return Metadata{}, err
+	}
 	meta := Metadata{
 		Mimetype: mime,
 	}
@@ -32,6 +39,23 @@ func ReadID3v2Tags(r io.ReadSeeker, mime string) (Metadata, error) {
 			Lang:   lyricFrame.Language,
 			Lyrics: lyricFrame.Lyrics,
 		})
+	}
+	if len(meta.Lyrics) == 0 {
+		for _, frame := range tags.GetFrames("TXXX") {
+			userTextFrame, ok := frame.(id3v2.UserDefinedTextFrame)
+			if !ok || userTextFrame.Value == "" {
+				continue
+			}
+			switch userTextFrame.Description {
+			case "lyrics", "USLT":
+			default:
+				continue
+			}
+			meta.Lyrics = append(meta.Lyrics, Lyrics{
+				Lang:   "unk",
+				Lyrics: userTextFrame.Value,
+			})
+		}
 	}
 	meta.Pictures = make([]Picture, 0)
 	for _, frame := range tags.GetFrames("APIC") {
