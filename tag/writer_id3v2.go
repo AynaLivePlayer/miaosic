@@ -5,19 +5,22 @@ import (
 	"github.com/bogem/id3v2/v2"
 	"io"
 	"os"
+	"strings"
 )
 
 func setID3v2Metadata(tag *id3v2.Tag, meta Metadata) {
 	tag.DeleteAllFrames()
+	// Use Unicode-safe default encoding for text frames like TIT2/TPE1/TALB.
+	tag.SetDefaultEncoding(id3v2.EncodingUTF8)
 	tag.SetTitle(meta.Title)
 	tag.SetArtist(meta.Artist)
 	tag.SetAlbum(meta.Album)
 	for _, lyric := range meta.Lyrics {
-		lang := lyric.Lang
-		if lang == "" {
-			lang = "unk"
+		uslf := id3v2.UnsynchronisedLyricsFrame{
+			Encoding: id3v2.EncodingUTF8,
+			Language: normalizeID3Language(lyric.Lang),
+			Lyrics:   lyric.Lyrics,
 		}
-		uslf := id3v2.UnsynchronisedLyricsFrame{Encoding: id3v2.EncodingUTF8, Language: lang[:min(3, len(lang))], Lyrics: lyric.Lyrics}
 		tag.AddUnsynchronisedLyricsFrame(uslf)
 		tag.AddUserDefinedTextFrame(id3v2.UserDefinedTextFrame{
 			Encoding:    id3v2.EncodingUTF8,
@@ -29,6 +32,32 @@ func setID3v2Metadata(tag *id3v2.Tag, meta Metadata) {
 		picFrame := id3v2.PictureFrame{Encoding: id3v2.EncodingUTF8, MimeType: pic.Mimetype, PictureType: pic.Type, Description: pic.Description, Picture: pic.Data}
 		tag.AddAttachedPicture(picFrame)
 	}
+}
+
+func normalizeID3Language(lang string) string {
+	l := strings.ToLower(strings.TrimSpace(lang))
+	switch l {
+	case "", "unk", "unknown":
+		return "und"
+	case "zh", "chi", "zho", "zh-cn", "zh-hans", "zh-hant":
+		return "zho"
+	case "en":
+		return "eng"
+	case "ja", "jp":
+		return "jpn"
+	case "ko":
+		return "kor"
+	}
+	if len(l) >= 3 {
+		c := l[:3]
+		for i := 0; i < 3; i++ {
+			if c[i] < 'a' || c[i] > 'z' {
+				return "und"
+			}
+		}
+		return c
+	}
+	return "und"
 }
 
 func WriteID3v2Tags(f *os.File, meta Metadata) error {

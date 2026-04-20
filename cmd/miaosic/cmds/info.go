@@ -13,8 +13,11 @@ func init() {
 
 var CmdInfo = &cobra.Command{
 	Use:   "info <provider> <uri>",
-	Short: "Get media info",
-	Args:  cobra.ExactArgs(2),
+	Short: "Get media metadata by provider and URI",
+	Long: `Resolve a provider-specific URI and print media metadata such as
+title, artist, album, cover, and identifier.`,
+	Example: "  miaosic info netease 1827600686\n  miaosic info qq https://y.qq.com/n/ryqq/songDetail/004Z8Ihr0JIu5s -j",
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 		uri := args[1]

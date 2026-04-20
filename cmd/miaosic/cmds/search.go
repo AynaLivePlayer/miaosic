@@ -21,8 +21,11 @@ func init() {
 
 var CmdSearch = &cobra.Command{
 	Use:   "search <provider> <keyword>",
-	Short: "Search media by keyword",
-	Args:  cobra.MinimumNArgs(2),
+	Short: "Search media by keyword from a provider",
+	Long: `Search media from the specified provider using keyword text.
+Supports paging and optional JSON output.`,
+	Example: "  miaosic search netease \"周杰伦\"\n  miaosic search qq Jay -p 2 --page-size 20 -j",
+	Args:    cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 		keywords := args[1:]

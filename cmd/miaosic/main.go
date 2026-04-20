@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"github.com/AynaLivePlayer/miaosic/cmd/miaosic/cmds"
 	"github.com/AynaLivePlayer/miaosic/cmd/miaosic/internal"
 	_ "github.com/AynaLivePlayer/miaosic/providers/bilivideo"
@@ -21,8 +22,10 @@ func init() {
 
 var rootCmd = &cobra.Command{
 	Use:   "miaosic",
-	Short: "cmdline tool for miaosic.",
-	Long:  `cmdline tool for miaosic: a music searching tools`,
+	Short: "CLI for searching, fetching, downloading, and tagging music",
+	Long: `miaosic is a command-line client for music providers.
+It supports search, media info, URL resolving, lyrics, downloads,
+QR login, and audio metadata tag read/write operations.`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		if err := internal.RestoreSessions(sessionFile); err != nil {
 			fmt.Printf("Error restoring sessions from file: %v\n", err)
@@ -47,6 +50,7 @@ func init() {
 	rootCmd.AddCommand(cmds.CmdLyric)
 	rootCmd.AddCommand(cmds.CmdQuality)
 	rootCmd.AddCommand(cmds.CmdDownload)
+	rootCmd.AddCommand(cmds.CmdTag)
 }
 
 func main() {

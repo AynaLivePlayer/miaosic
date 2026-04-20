@@ -14,8 +14,11 @@ func init() {
 
 var CmdUrl = &cobra.Command{
 	Use:   "url <provider> <uri>",
-	Short: "Get media URLs",
-	Args:  cobra.ExactArgs(2),
+	Short: "Resolve playable media URLs",
+	Long: `Resolve one or more playable URLs from a provider media URI.
+Use --quality to request a preferred quality, and -j for JSON output.`,
+	Example: "  miaosic url netease 1827600686\n  miaosic url qq 004Z8Ihr0JIu5s --quality 320k -j",
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 		uri := args[1]

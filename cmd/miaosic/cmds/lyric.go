@@ -23,8 +23,11 @@ func init() {
 
 var CmdLyric = &cobra.Command{
 	Use:   "lyric <provider> <uri>",
-	Short: "Get media lyrics",
-	Args:  cobra.ExactArgs(2),
+	Short: "Get lyrics for a media item",
+	Long: `Fetch lyric tracks for a provider media URI.
+Lyrics can be printed, exported to JSON, or written to .lrc files.`,
+	Example: "  miaosic lyric netease 1827600686\n  miaosic lyric netease 1827600686 --save\n  miaosic lyric qq 004Z8Ihr0JIu5s -o lyric.lrc",
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 		uri := args[1]

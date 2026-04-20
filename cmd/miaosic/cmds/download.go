@@ -14,28 +14,30 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 var (
 	writeMetadata     bool
 	downloadQuality   string
 	specifiedFilename string
+	useActualExt      bool
 )
 
 func init() {
 	CmdDownload.Flags().BoolVar(&writeMetadata, "metadata", false, "Write metadata (tags, cover, lyrics) to the file")
 	CmdDownload.Flags().StringVar(&downloadQuality, "quality", "", "Quality preference (e.g., 128k, 320k, flac)")
 	CmdDownload.Flags().StringVar(&specifiedFilename, "filename", "", "Filename to use for download")
+	CmdDownload.Flags().BoolVar(&useActualExt, "use-actual-ext", false, "If --filename extension mismatches detected audio extension, replace it with actual extension")
 }
 
 var CmdDownload = &cobra.Command{
 	Use:   "download <provider> <uri>",
-	Short: "Download media, with metadata and cover art",
-	Long: `Downloads a media file from a provider.
-It fetches media information, URL, lyrics, and cover art.
-By default, it writes all available metadata to the downloaded file.
-Supported formats for metadata include MP3 and FLAC.`,
-	Args: cobra.ExactArgs(2),
+	Short: "Download media from a provider URI",
+	Long: `Download a media file from provider URI, with optional quality and filename.
+When --metadata is enabled, miaosic also writes title/artist/album/lyrics/cover tags.`,
+	Example: "  miaosic download netease 1827600686\n  miaosic download qq 004Z8Ihr0JIu5s --quality 320k --filename song.mp3\n  miaosic download kugou <uri> --filename song.flac --use-actual-ext\n  miaosic download netease 1827600686 --metadata",
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		// Steps 1-3: Get provider, media info, and URL (this part is unchanged)
 		providerName := args[0]
@@ -97,20 +99,28 @@ Supported formats for metadata include MP3 and FLAC.`,
 		}
 
 		downloadedBytes := mediaData.Bytes()
+		detectedExt := mimetype.Detect(downloadedBytes[:min(512, len(downloadedBytes))]).Extension()
 		parsedURL, urlErr := url.Parse(mediaURL.Url)
-		var ext string
-		if urlErr != nil {
-			ext = ""
-		} else {
-			ext = filepath.Ext(parsedURL.Path)
+		urlExt := ""
+		if urlErr == nil {
+			urlExt = filepath.Ext(parsedURL.Path)
 		}
-		if ext == "" {
-			ext = mimetype.Detect(downloadedBytes[:min(512, len(downloadedBytes))]).Extension()
+		actualExt := detectedExt
+		if actualExt == "" {
+			actualExt = urlExt
 		}
+		ext := actualExt
 		filename := sanitizeFilename(fmt.Sprintf("%s - %s%s", info.Artist, info.Title, ext))
 		// Step 5: Save the file from the buffer
 		if specifiedFilename != "" {
 			filename = specifiedFilename
+			if useActualExt && actualExt != "" {
+				currentExt := filepath.Ext(filename)
+				if !strings.EqualFold(currentExt, actualExt) {
+					base := filename[:len(filename)-len(currentExt)]
+					filename = base + actualExt
+				}
+			}
 		}
 
 		err = os.WriteFile(filename, downloadedBytes, 0644)

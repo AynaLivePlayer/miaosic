@@ -13,9 +13,11 @@ func init() {
 }
 
 var CmdQuality = &cobra.Command{
-	Use:   "quality <provider>",
-	Short: "List supported qualities for a provider",
-	Args:  cobra.ExactArgs(1),
+	Use:     "quality <provider>",
+	Short:   "List supported qualities for a provider",
+	Long:    "List quality options supported by a provider, such as 128k, 320k, flac, hq, or sq.",
+	Example: "  miaosic quality netease\n  miaosic quality qq -j",
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 

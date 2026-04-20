@@ -4,11 +4,16 @@ Music Provider Repository, provide a universal interface for different music ser
 
 ## Command line Tool
 
-please check [miaosic cmd tool](./cmd/miaosic/README.md)
+See [miaosic CLI docs](./cmd/miaosic/README.md).
 
 ## How to Use
 
-please figure it out by yourself.
+Use the CLI commands documented in [cmd/miaosic/README.md](./cmd/miaosic/README.md).
+Typical flow:
+1. `miaosic providers`
+2. `miaosic search <provider> <keyword>`
+3. `miaosic url|download|lyric ...`
+4. `miaosic tag read|write <file> ...` for local metadata operations.
 
 ## Available Providers
 

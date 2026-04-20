@@ -13,12 +13,15 @@ import (
 var CmdQrlogin = &cobra.Command{
 	Use:   "qrlogin",
 	Short: "QR code login operations",
+	Long:  "Manage provider login sessions using QR code flow.",
 }
 
 var getqrcodeCmd = &cobra.Command{
-	Use:   "getqrcode <provider>",
-	Short: "Get QR code for login",
-	Args:  cobra.ExactArgs(1),
+	Use:     "getqrcode <provider>",
+	Short:   "Get QR code for login",
+	Long:    "Generate and print a login QR code, then return key/url for verification.",
+	Example: "  miaosic qrlogin getqrcode netease\n  miaosic qrlogin getqrcode qq",
+	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 
@@ -58,9 +61,11 @@ var getqrcodeCmd = &cobra.Command{
 }
 
 var verifyCmd = &cobra.Command{
-	Use:   "verify <provider> <key>",
-	Short: "Verify QR login",
-	Args:  cobra.ExactArgs(2),
+	Use:     "verify <provider> <key>",
+	Short:   "Verify QR login",
+	Long:    "Verify a scanned QR login key and persist the provider session.",
+	Example: "  miaosic qrlogin verify netease <key>\n  miaosic --session-file ~/.miaosic_session.json qrlogin verify qq <key>",
+	Args:    cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
 		providerName := args[0]
 		key := args[1]

@@ -9,6 +9,7 @@ import (
 var CmdProviders = &cobra.Command{
 	Use:   "providers",
 	Short: "List all registered providers and login status",
+	Long:  "List all available providers and whether each provider is logged in or supports login.",
 	Run: func(cmd *cobra.Command, args []string) {
 		providers := miaosic.ListAvailableProviders()
 
