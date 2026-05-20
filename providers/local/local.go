@@ -15,10 +15,14 @@ type localPlaylist struct {
 }
 
 type localMedia struct {
-	info    miaosic.MediaInfo
-	quality miaosic.Quality
-	loaded  bool
-	search  string
+	info        miaosic.MediaInfo
+	quality     miaosic.Quality
+	size        int64
+	modTimeNano int64
+	tagScanned  bool
+	tagLoaded   bool
+	coverLoaded bool
+	search      string
 }
 
 func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
@@ -33,15 +37,26 @@ func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, 
 type Local struct {
 	localDir   string
 	playlists  map[string]*localPlaylist
+	scanMode   TagScanMode
+	cacheMode  LocalCacheMode
 	mediaByID  map[string]*localMedia
 	searchDocs []localSearchDoc
 	mu         sync.RWMutex
 }
 
-func NewLocal(localdir string) *Local {
+func NewLocal(localdir string, options ...LocalOption) *Local {
+	opts := localOptions{}
+	for _, option := range options {
+		if option == nil {
+			continue
+		}
+		option.applyLocalOption(&opts)
+	}
 	l := &Local{
 		localDir:  localdir,
 		playlists: make(map[string]*localPlaylist, 0),
+		scanMode:  opts.scanMode,
+		cacheMode: opts.cacheMode,
 		mediaByID: make(map[string]*localMedia, 0),
 	}
 	if err := os.MkdirAll(localdir, 0755); err != nil {
@@ -54,6 +69,13 @@ func NewLocal(localdir string) *Local {
 		}
 	}
 	l.rebuildIndexes()
+	l.applyTagCache()
+	switch opts.scanMode {
+	case ScanTagOnStartup:
+		l.scanTagsOnStartup()
+	case ScanTagInBackground:
+		l.scanTagsInBackground()
+	}
 	return l
 }
 
@@ -73,36 +95,17 @@ func (l *Local) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 	if meta.Provider != l.GetName() {
 		return miaosic.MediaInfo{}, miaosic.ErrorDifferentProvider
 	}
-	l.mu.RLock()
-	media, ok := l.mediaByID[meta.Identifier]
-	if ok && media.loaded {
-		info := media.info
-		l.mu.RUnlock()
+	info, changed, err := l.loadMediaTag(meta.Identifier, true)
+	if err == miaosic.ErrorInvalidMediaMeta {
+		return info, err
+	}
+	if err == nil && changed {
+		l.saveTagCache()
+	}
+	if err != nil {
 		return info, nil
 	}
-	l.mu.RUnlock()
-	if !ok {
-		return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
-	}
-
-	l.mu.Lock()
-	defer l.mu.Unlock()
-	media, ok = l.mediaByID[meta.Identifier]
-	if !ok {
-		return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
-	}
-	if media.loaded {
-		return media.info, nil
-	}
-
-	if err := readMediaFile(l.localDir, media); err != nil {
-		media.loaded = true
-		return media.info, nil
-	}
-	media.loaded = true
-	media.search = localSearchText(media.info)
-	l.rebuildIndexesLocked()
-	return media.info, nil
+	return info, nil
 }
 
 func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {

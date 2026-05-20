@@ -88,7 +88,13 @@ func readLocalPlaylist(localdir string, playlist *localPlaylist) error {
 			if !isSupportedLocalAudioFile(fn) {
 				continue
 			}
+			info, err := item.Info()
+			if err != nil {
+				continue
+			}
 			media := localMedia{
+				size:        info.Size(),
+				modTimeNano: info.ModTime().UnixNano(),
 				info: miaosic.MediaInfo{
 					Title:  fn,
 					Artist: "Unknown",
@@ -122,13 +128,19 @@ func _getOrDefault(s string, def string) string {
 	return s
 }
 
-func readMediaFile(localdir string, media *localMedia) error {
+func readMediaFileTag(localdir string, media *localMedia, includeCover bool) error {
 	p := path.Join(localdir, media.info.Meta.Identifier)
 	f, err := os.Open(p)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
+	info, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	media.size = info.Size()
+	media.modTimeNano = info.ModTime().UnixNano()
 	meta, err := tag.ReadFrom(f)
 	if err != nil {
 		return err
@@ -136,7 +148,7 @@ func readMediaFile(localdir string, media *localMedia) error {
 	media.info.Title = _getOrDefault(meta.Title(), filepath.Base(p))
 	media.info.Artist = _getOrDefault(meta.Artist(), "Unknown")
 	media.info.Album = _getOrDefault(meta.Album(), "Unknown")
-	if meta.Picture() != nil {
+	if includeCover && meta.Picture() != nil {
 		media.info.Cover.Data = meta.Picture().Data
 	}
 	return nil
@@ -169,6 +181,5 @@ func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error)
 			lyrics = append(lyrics, miaosic.ParseLyrics(name, mMeta.Lyrics()))
 		}
 	}
-	//fmt.Println(lyrics)
 	return lyrics, nil
 }
