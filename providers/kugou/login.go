@@ -38,7 +38,9 @@ func (n *Kugou) QrLogin() (*miaosic.QrLoginSession, error) {
 		"srcappid":   "2919",
 	}
 	data["signature"] = signatureWebParams(data)
-	resp, err := miaosic.Requester.GetQueryX("http://login-user.kugou.com/v2/qrcode", data)
+	resp, err := n.client.R().
+		SetQueryParams(data).
+		Get("http://login-user.kugou.com/v2/qrcode")
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +69,9 @@ func (n *Kugou) QrLoginVerify(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLogin
 		"srcappid":   "2919",
 	}
 	data["signature"] = signatureWebParams(data)
-	resp, err := miaosic.Requester.GetQueryX("http://login-user.kugou.com/v2/get_userinfo_qrcode", data)
+	resp, err := n.client.R().
+		SetQueryParams(data).
+		Get("http://login-user.kugou.com/v2/get_userinfo_qrcode")
 	if err != nil {
 		return &miaosic.QrLoginResult{
 			Success: false,

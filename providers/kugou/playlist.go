@@ -4,12 +4,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"regexp"
 	"strings"
 
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/aynakeya/deepcolor"
 	"github.com/tidwall/gjson"
 )
 
@@ -51,13 +49,10 @@ func (k *Kugou) getCollectionId(identifier string) (string, error) {
 	}
 	dataBytes, _ := json.Marshal(data)
 	param := k.addAndroidParams(map[string]interface{}{}, string(dataBytes))
-	urlReq, _ := deepcolor.NewGetRequestWithQuery(
-		"https://t.kugou.com/v1/songlist/batch_decode",
-		param, map[string]string{},
-	)
-	urlReq.Method = http.MethodPost
-	urlReq.Data = dataBytes
-	resp, err := miaosic.Requester.HTTP(urlReq)
+	resp, err := k.client.R().
+		SetQueryParams(k.stringifyParams(param)).
+		SetBody(dataBytes).
+		Post("https://t.kugou.com/v1/songlist/batch_decode")
 	if err != nil {
 		return "", err
 	}
@@ -80,15 +75,13 @@ func (k *Kugou) getPlaylistTitle(collId string) (string, error) {
 	}
 	dataBytes, _ := json.Marshal(data)
 	param := k.addAndroidParams(map[string]interface{}{}, string(dataBytes))
-	urlReq, _ := deepcolor.NewGetRequestWithQuery(
-		"https://gateway.kugou.com/v3/get_list_info",
-		param, map[string]string{
+	resp, err := k.client.R().
+		SetHeaders(map[string]string{
 			"x-router": "pubsongs.kugou.com",
-		},
-	)
-	urlReq.Method = http.MethodPost
-	urlReq.Data = dataBytes
-	resp, err := miaosic.Requester.HTTP(urlReq)
+		}).
+		SetQueryParams(k.stringifyParams(param)).
+		SetBody(dataBytes).
+		Post("https://gateway.kugou.com/v3/get_list_info")
 	if err != nil {
 		return "", err
 	}
@@ -128,11 +121,9 @@ func (k *Kugou) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) {
 	}
 	for page := 0; page < 30; page++ {
 		params["begin_idx"] = page * 100
-		urlReq, _ := deepcolor.NewGetRequestWithQuery(
-			"https://gateway.kugou.com/pubsongs/v2/get_other_list_file_nofilt",
-			k.addAndroidParams(params, ""), map[string]string{},
-		)
-		resp, err := miaosic.Requester.HTTP(urlReq)
+		resp, err := k.client.R().
+			SetQueryParams(k.stringifyParams(k.addAndroidParams(params, ""))).
+			Get("https://gateway.kugou.com/pubsongs/v2/get_other_list_file_nofilt")
 		if err != nil {
 			return nil, err
 		}

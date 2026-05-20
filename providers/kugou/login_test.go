@@ -1,9 +1,10 @@
 package kugou
 
 import (
+	"testing"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestSignatureWebParams(t *testing.T) {

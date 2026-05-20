@@ -2,9 +2,10 @@ package kugou
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestKugou_MatchPlaylist(t *testing.T) {
@@ -18,21 +19,27 @@ func TestKugou_GetPlaylist(t *testing.T) {
 	// less than 100 song
 	playlist, err := testApi.GetPlaylist(miaosic.MetaData{Identifier: "gcid_3zfcfgjcz31z06d"})
 	require.NoError(t, err)
-	fmt.Println(playlist.Medias)
+	require.Equal(t, "emo伤感天花板｜来自0.8×的孤独与失恋", playlist.Title)
+	require.NotEmpty(t, playlist.Medias)
+	require.Less(t, len(playlist.Medias), 200)
+	t.Log(fmt.Sprintf("sample %s", formatMediaInfoForLog(playlist.Medias[0])))
 }
 
 func TestKugou_GetPlaylist_2(t *testing.T) {
 	// more than 100 song
 	playlist, err := testApi.GetPlaylist(miaosic.MetaData{Identifier: "gcid_3ztimg53zoz09e"})
 	require.NoError(t, err)
-	fmt.Println(playlist.Medias)
+	require.Equal(t, "分享", playlist.Title)
+	require.Greater(t, len(playlist.Medias), 100)
+	t.Log(fmt.Sprintf("sample %s", formatMediaInfoForLog(playlist.Medias[0])))
 }
 
 func TestKugou_GetPlaylist_3(t *testing.T) {
 	playlist, err := testApi.GetPlaylist(miaosic.MetaData{Identifier: "collection_3_600319512_2_0"})
 	require.NoError(t, err)
-	fmt.Println(playlist.Medias)
-	fmt.Println(playlist.Title)
+	require.Equal(t, "倾城一笑不回头喜欢的音乐", playlist.Title)
+	require.Greater(t, len(playlist.Medias), 100)
+	t.Log(fmt.Sprintf("sample %s", formatMediaInfoForLog(playlist.Medias[0])))
 }
 
 func TestKugou_getCollectionId(t *testing.T) {

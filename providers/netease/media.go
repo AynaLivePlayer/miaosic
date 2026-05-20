@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -23,17 +22,6 @@ type Netease struct {
 	PlaylistRegex0 *regexp.Regexp
 	PlaylistRegex1 *regexp.Regexp
 	deviceId       string
-}
-
-func (n *Netease) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{
-		QualityStandard,
-		QualityHigher,
-		QualityExHigh,
-		QualityLossless,
-		QualityHiRes,
-		QualityJyMaster,
-	}
 }
 
 func NewNetease() *Netease {
@@ -143,19 +131,12 @@ func (n *Netease) GetMediaInfo(meta miaosic.MetaData) (media miaosic.MediaInfo, 
 	return media, nil
 }
 
-func (n *Netease) quality2str(quality miaosic.Quality) string {
-	if slices.Contains(n.Qualities(), quality) {
-		return string(quality)
-	}
-	return "standard"
-}
-
 func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	result, err := neteaseApi.GetSongURL(
 		n.ReqData,
 		neteaseApi.SongURLConfig{
 			Ids:   []int{cast.ToInt(meta.Identifier)},
-			Level: n.quality2str(quality),
+			Level: string(n.MapQuality(quality)),
 		})
 	if err != nil || result.Code != 200 {
 		if err != nil {
@@ -173,7 +154,7 @@ func (n *Netease) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([
 	for _, u := range result.Data {
 		qualityStr, ok := u.Level.(string)
 		if !ok {
-			qualityStr = "unknown"
+			qualityStr = "standard"
 		}
 		urls = append(urls, miaosic.MediaUrl{
 			Url:     u.Url,

@@ -3,32 +3,28 @@ package kuwo
 import (
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/providers"
-	"github.com/AynaLivePlayer/miaosic/utils"
-	"github.com/aynakeya/deepcolor"
-	"github.com/aynakeya/deepcolor/dphttp"
-	"github.com/spf13/cast"
-	"github.com/tidwall/gjson"
 	"html"
 	"math"
 	"math/rand"
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/utils"
+	"github.com/go-resty/resty/v2"
+	"github.com/spf13/cast"
+	"github.com/tidwall/gjson"
 )
 
 type Kuwo struct {
-	providers.DeepcolorProvider
 	PlaylistRegex0 *regexp.Regexp
 	PlaylistRegex1 *regexp.Regexp
 	IdRegex0       *regexp.Regexp
 	IdRegex1       *regexp.Regexp
 	header         map[string]string
-}
-
-func (k *Kuwo) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{miaosic.QualityAny}
+	client         *resty.Client
 }
 
 func NewKuwo() *Kuwo {
@@ -37,123 +33,9 @@ func NewKuwo() *Kuwo {
 		PlaylistRegex1: regexp.MustCompile("playlist/[0-9]+"),
 		IdRegex0:       regexp.MustCompile("^[0-9]+$"),
 		IdRegex1:       regexp.MustCompile("^kw[0-9]+$"),
+		client:         resty.New().SetTimeout(3 * time.Second),
 	}
 	kw.initToken()
-	kw.InfoApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MetaData) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithSingleQuery(
-				"http://www.kuwo.cn/api/www/music/musicInfo?httpsStatus=1",
-				"mid", meta.Identifier, kw.header)
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, media *miaosic.MediaInfo) error {
-			if resp.Get("data.musicrid").String() == "" {
-				return miaosic.ErrorExternalApi
-			}
-			media.Title = html.UnescapeString(resp.Get("data.name").String())
-			media.Cover.Url = resp.Get("data.pic").String()
-			media.Artist = resp.Get("data.artist").String()
-			media.Album = resp.Get("data.album").String()
-			return nil
-		})
-	kw.FileApi = deepcolor.CreateApiResultFunc(
-		func(param providers.FileApiParam) (*dphttp.Request, error) {
-			// 128kmp3、192kmp3、320kmp3、2000kflac
-			// https://github.com/QiuYaohong/kuwoMusicApi/issues/24
-			var quality string
-			switch param.Quality {
-			case miaosic.Quality128k:
-				quality = "128kmp3"
-			case miaosic.Quality192k:
-				quality = "192kmp3"
-			case miaosic.Quality256k:
-				quality = "256kmp3"
-			case miaosic.Quality320k:
-				quality = "320kmp3"
-			default:
-				quality = "320kmp3"
-			}
-			// outdated: source=kwplayer_ar_10.8.2.1_qq.apk
-			// https://github.com/QiuYaohong/kuwoMusicApi/issues/24#issuecomment-2142606594
-			return deepcolor.NewGetRequestWithQuery(
-				"http://mobi.kuwo.cn/mobi.s?f=web&source=kwplayercar_ar_6.0.0.9_B_jiakong_vh.apk&user=C_APK_guanwang_12609069939969033731&type=convert_url_with_sign&br=320kmp3",
-				map[string]any{
-					"rid": param.Meta.Identifier,
-					"br":  quality,
-				}, kw.header)
-		},
-
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, urls *[]miaosic.MediaUrl) error {
-			if resp.Get("code").Int() != 200 {
-				return errors.New("miaosic: kuwo api error" + resp.Get("msg").String())
-			}
-			if resp.Get("data.url").String() == "" {
-				return miaosic.ErrorExternalApi
-			}
-			var quality miaosic.Quality
-			switch resp.Get("data.bitrate").Int() {
-			case 320:
-				quality = miaosic.Quality320k
-			case 256:
-				quality = miaosic.Quality256k
-			case 192:
-				quality = miaosic.Quality192k
-			case 128:
-				quality = miaosic.Quality128k
-			default:
-				quality = miaosic.QualityUnk
-			}
-			*urls = []miaosic.MediaUrl{miaosic.NewMediaUrl(resp.Get("data.url").String(), quality)}
-			return nil
-		})
-	kw.LyricApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MetaData) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithSingleQuery(
-				"http://m.kuwo.cn/newh5/singles/songinfoandlrc",
-				"musicId", meta.Identifier, kw.header)
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, lyrics *[]miaosic.Lyrics) error {
-			//pp.Println(resp.String())
-			lrcs := make([]string, 0)
-			resp.Get("data.lrclist").ForEach(func(key, value gjson.Result) bool {
-				lrcs = append(lrcs, fmt.Sprintf("[00:%s]%s", value.Get("time").String(), value.Get("lineLyric").String()))
-				return true
-			})
-			if len(lrcs) == 0 {
-				return miaosic.ErrorExternalApi
-			}
-			*lyrics = []miaosic.Lyrics{utils.ParseLyricWithLangDetection(strings.Join(lrcs, "\n"))}
-			return nil
-		})
-	kw.SearchApi = deepcolor.CreateApiResultFunc(
-		func(param providers.MediaSearchParam) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithQuery(
-				"http://www.kuwo.cn/search/searchMusicBykeyWord/searchMusicBykeyWord?vipver=1&client=kt&ft=music&cluster=0&strategy=2012&encoding=utf8&rformat=json&mobi=1&issubtitle=1&show_copyright_off=1",
-				map[string]any{
-					"all": param.Keyword,
-					"pn":  param.Page - 1,
-					"rn":  param.PageSize,
-				}, kw.header)
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, result *[]miaosic.MediaInfo) error {
-			resp.Get("abslist").ForEach(func(key, value gjson.Result) bool {
-				*result = append(*result, miaosic.MediaInfo{
-					Title:  html.UnescapeString(value.Get("SONGNAME").String()),
-					Cover:  miaosic.Picture{Url: "https://img2.kuwo.cn/star/albumcover/" + value.Get("web_albumpic_short").String()},
-					Artist: value.Get("ARTIST").String(),
-					Album:  value.Get("ALBUM").String(),
-					Meta: miaosic.MetaData{
-						Provider:   kw.GetName(),
-						Identifier: value.Get("DC_TARGETID").String(),
-					},
-				})
-				return true
-			})
-			return nil
-		})
 	//kw.PlaylistFunc = kw.playlistApi
 	return kw
 }
@@ -170,6 +52,116 @@ func (k *Kuwo) initToken() {
 
 func (k *Kuwo) GetName() string {
 	return "kuwo"
+}
+
+func (k *Kuwo) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
+	resp, err := k.client.R().
+		SetHeaders(k.header).
+		SetQueryParams(map[string]string{
+			"all": keyword,
+			"pn":  strconv.Itoa(page - 1),
+			"rn":  strconv.Itoa(size),
+		}).
+		Get("http://www.kuwo.cn/search/searchMusicBykeyWord/searchMusicBykeyWord?vipver=1&client=kt&ft=music&cluster=0&strategy=2012&encoding=utf8&rformat=json&mobi=1&issubtitle=1&show_copyright_off=1")
+	if err != nil {
+		return nil, err
+	}
+	respResult := gjson.ParseBytes(resp.Body())
+	result := make([]miaosic.MediaInfo, 0)
+	respResult.Get("abslist").ForEach(func(key, value gjson.Result) bool {
+		result = append(result, miaosic.MediaInfo{
+			Title:  html.UnescapeString(value.Get("SONGNAME").String()),
+			Cover:  miaosic.Picture{Url: "https://img2.kuwo.cn/star/albumcover/" + value.Get("web_albumpic_short").String()},
+			Artist: value.Get("ARTIST").String(),
+			Album:  value.Get("ALBUM").String(),
+			Meta: miaosic.MetaData{
+				Provider:   k.GetName(),
+				Identifier: value.Get("DC_TARGETID").String(),
+			},
+		})
+		return true
+	})
+	return result, nil
+}
+
+func (k *Kuwo) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
+	resp, err := k.client.R().
+		SetHeaders(k.header).
+		SetQueryParam("mid", meta.Identifier).
+		Get("http://www.kuwo.cn/api/www/music/musicInfo?httpsStatus=1")
+	if err != nil {
+		return miaosic.MediaInfo{}, err
+	}
+	respResult := gjson.ParseBytes(resp.Body())
+	media := miaosic.MediaInfo{Meta: meta}
+	if respResult.Get("data.musicrid").String() == "" {
+		return miaosic.MediaInfo{}, miaosic.ErrorExternalApi
+	}
+	media.Title = html.UnescapeString(respResult.Get("data.name").String())
+	media.Cover.Url = respResult.Get("data.pic").String()
+	media.Artist = respResult.Get("data.artist").String()
+	media.Album = respResult.Get("data.album").String()
+	return media, nil
+}
+
+func (k *Kuwo) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
+	// 128kmp3、192kmp3、320kmp3、2000kflac
+	// https://github.com/QiuYaohong/kuwoMusicApi/issues/24
+	qualityStr := string(k.MapQuality(quality))
+	// outdated: source=kwplayer_ar_10.8.2.1_qq.apk
+	// https://github.com/QiuYaohong/kuwoMusicApi/issues/24#issuecomment-2142606594
+	resp, err := k.client.R().
+		SetHeaders(k.header).
+		SetQueryParams(map[string]string{
+			"rid": meta.Identifier,
+			"br":  qualityStr,
+		}).
+		Get("http://mobi.kuwo.cn/mobi.s?f=web&source=kwplayercar_ar_6.0.0.9_B_jiakong_vh.apk&user=C_APK_guanwang_12609069939969033731&type=convert_url_with_sign&br=320kmp3")
+	if err != nil {
+		return nil, err
+	}
+	respResult := gjson.ParseBytes(resp.Body())
+	if respResult.Get("code").Int() != 200 {
+		return nil, errors.New("miaosic: kuwo api error" + respResult.Get("msg").String())
+	}
+	if respResult.Get("data.url").String() == "" {
+		return nil, miaosic.ErrorExternalApi
+	}
+	var respQuality miaosic.Quality
+	switch respResult.Get("data.bitrate").Int() {
+	case 320:
+		respQuality = miaosic.Quality320k
+	case 256:
+		respQuality = miaosic.Quality256k
+	case 192:
+		respQuality = miaosic.Quality192k
+	case 128:
+		respQuality = miaosic.Quality128k
+	default:
+		respQuality = miaosic.QualityStandard
+	}
+	return []miaosic.MediaUrl{miaosic.NewMediaUrl(respResult.Get("data.url").String(), respQuality)}, nil
+}
+
+func (k *Kuwo) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
+	resp, err := k.client.R().
+		SetHeaders(k.header).
+		SetQueryParam("musicId", meta.Identifier).
+		Get("http://m.kuwo.cn/newh5/singles/songinfoandlrc")
+	if err != nil {
+		return nil, err
+	}
+	respResult := gjson.ParseBytes(resp.Body())
+	//pp.Println(resp.String())
+	lrcs := make([]string, 0)
+	respResult.Get("data.lrclist").ForEach(func(key, value gjson.Result) bool {
+		lrcs = append(lrcs, fmt.Sprintf("[00:%s]%s", value.Get("time").String(), value.Get("lineLyric").String()))
+		return true
+	})
+	if len(lrcs) == 0 {
+		return nil, miaosic.ErrorExternalApi
+	}
+	return []miaosic.Lyrics{utils.ParseLyricWithLangDetection(strings.Join(lrcs, "\n"))}, nil
 }
 
 func (k *Kuwo) MatchMedia(keyword string) (miaosic.MetaData, bool) {

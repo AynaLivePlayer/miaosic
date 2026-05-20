@@ -2,17 +2,7 @@ package miaosic
 
 import (
 	"sort"
-
-	"github.com/aynakeya/deepcolor"
-	"github.com/aynakeya/deepcolor/dphttp"
 )
-
-var Requester dphttp.IRequester = deepcolor.NewRestyRequester()
-
-func init() {
-	Requester.Config().Timeout = 3
-	deepcolor.SetDefaultRequester(Requester)
-}
 
 type Registry struct {
 	providers map[string]MediaProvider

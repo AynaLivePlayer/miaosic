@@ -3,11 +3,12 @@ package qq
 import (
 	"fmt"
 	"regexp"
-	"slices"
 	"strings"
+	"time"
 
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/utils"
+	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/gjson"
 )
 
@@ -26,20 +27,13 @@ type QQMusicProvider struct {
 	header       map[string]string
 	qimeiUpdated bool   //i don't care concurrence
 	channel      string // "qq" or "wechat"
+	client       *resty.Client
+	loginClient  *resty.Client
+	wxPollClient *resty.Client
 }
 
 func (p *QQMusicProvider) GetName() string {
 	return "qq"
-}
-
-func (p *QQMusicProvider) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{
-		QualityMaster, QualityAtmos2, QualityAtmos51,
-		QualityFLAC,
-		QualityOGG640, QualityOGG320, QualityOGG192, QualityOGG96,
-		QualityMP3320, QualityMP3128, QualityACC192,
-		QualityACC96, QualityACC48,
-	}
 }
 
 func NewQQMusicProvider(channel string) *QQMusicProvider {
@@ -62,6 +56,9 @@ func NewQQMusicProvider(channel string) *QQMusicProvider {
 		},
 		qimeiUpdated: false,
 		channel:      channel,
+		client:       resty.New().SetTimeout(3 * time.Second),
+		loginClient:  resty.New().SetTimeout(3 * time.Second).SetRedirectPolicy(resty.NoRedirectPolicy()),
+		wxPollClient: resty.New().SetTimeout(2 * time.Second),
 	}
 	return val
 }
@@ -175,16 +172,9 @@ func (p *QQMusicProvider) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo
 	}, nil
 }
 
-func (p *QQMusicProvider) asQQQuality(quality miaosic.Quality) miaosic.Quality {
-	if slices.Contains(p.Qualities(), quality) {
-		return quality
-	}
-	return QualityMP3320
-}
-
 func (p *QQMusicProvider) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	var module, method string
-	quality = p.asQQQuality(quality)
+	quality = p.MapQuality(quality)
 	if isEncryptedQuality(quality) {
 		module = "music.vkey.GetEVkey"
 		method = "CgiGetEVkey"

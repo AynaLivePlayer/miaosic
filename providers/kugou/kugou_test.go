@@ -1,6 +1,7 @@
 package kugou
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -11,7 +12,24 @@ import (
 
 var testApi = NewKugou(false)
 
+func formatMediaInfoForLog(info miaosic.MediaInfo) string {
+	return fmt.Sprintf("title=%q artist=%q album=%q provider=%q identifier=%q", info.Title, info.Artist, info.Album, info.Meta.Provider, info.Meta.Identifier)
+}
+
+func formatMediaURLForLog(url miaosic.MediaUrl) string {
+	return fmt.Sprintf("quality=%q url=%q headers=%d", url.Quality, url.Url, len(url.Header))
+}
+
+func formatLyricsForLog(lyrics miaosic.Lyrics) string {
+	firstLine := ""
+	if len(lyrics.Content) > 0 {
+		firstLine = lyrics.Content[0].Lyric
+	}
+	return fmt.Sprintf("lang=%q lines=%d first=%q", lyrics.Lang, len(lyrics.Content), firstLine)
+}
+
 func init() {
+	os.Setenv("kugou_session", "eyJ0b2tlbiI6IjgyNjVkYWFjOTBiYThjN2FhNTZjNjNjODdjMTRkODIzY2UyZTQ3ODA4NDViMjc4YzJkZTRlMzJkOWFiZGQ2Y2YiLCJ1c2VyaWQiOiIyMjY5Nzk2ODY3In0=")
 	_ = testApi.RestoreSession(os.Getenv("kugou_session"))
 }
 
@@ -20,7 +38,7 @@ func TestKugou_Search(t *testing.T) {
 	require.NoError(t, err, "Search Error")
 	require.NotEmpty(t, result, "Search Result Empty")
 	require.Equal(t, 20, len(result), "Search Result Length")
-	t.Log(result[0])
+	t.Log(formatMediaInfoForLog(result[0]))
 }
 
 func TestKugou_MatchMedia(t *testing.T) {
@@ -36,7 +54,7 @@ func TestKugou_GetMediaInfo(t *testing.T) {
 	result, err := testApi.GetMediaInfo(meta)
 	require.NoError(t, err, "GetMediaInfo Error")
 	require.NotEmpty(t, result, "GetMediaInfo Result Empty")
-	t.Log(result)
+	t.Log(formatMediaInfoForLog(result))
 }
 
 func TestKugou_GetMediaInfo2(t *testing.T) {
@@ -44,7 +62,7 @@ func TestKugou_GetMediaInfo2(t *testing.T) {
 	result, err := testApi.GetMediaInfo(meta)
 	require.NoError(t, err, "GetMediaInfo Error")
 	require.NotEmpty(t, result, "GetMediaInfo Result Empty")
-	t.Log(result)
+	t.Log(formatMediaInfoForLog(result))
 }
 
 func TestKugou_GetMediaInfo3_Verify_Artists(t *testing.T) {
@@ -55,7 +73,7 @@ func TestKugou_GetMediaInfo3_Verify_Artists(t *testing.T) {
 	require.NotNil(t, result, "GetMediaInfo Result Empty")
 	require.Equal(t, []string{"杜婧荧", "王艺翔"}, result.Artists)
 	require.NotEmpty(t, result, "GetMediaInfo Result Empty")
-	t.Log(result)
+	t.Log(formatMediaInfoForLog(result))
 }
 
 func TestKugou_GetMediaUrl(t *testing.T) {
@@ -63,7 +81,7 @@ func TestKugou_GetMediaUrl(t *testing.T) {
 	result, err := testApi.GetMediaUrl(meta, miaosic.QualityAny)
 	require.NoError(t, err, "GetMediaUrl Error")
 	require.NotEmpty(t, result, "GetMediaUrl Result Empty")
-	t.Log(result)
+	t.Log(formatMediaURLForLog(result[0]))
 }
 
 func TestKugou_GetMediaUrl_Vip(t *testing.T) {
@@ -71,7 +89,7 @@ func TestKugou_GetMediaUrl_Vip(t *testing.T) {
 	result, err := testApi.GetMediaUrl(meta, miaosic.QualitySQ)
 	require.NoError(t, err, "GetMediaUrl Error")
 	require.NotEmpty(t, result, "GetMediaUrl Result Empty")
-	t.Log(result)
+	t.Log(formatMediaURLForLog(result[0]))
 }
 
 func TestKugou_GetMediaUrlAcappella(t *testing.T) {
@@ -79,7 +97,7 @@ func TestKugou_GetMediaUrlAcappella(t *testing.T) {
 	result, err := testApi.GetMediaUrl(meta, "magic_acappella")
 	require.NoError(t, err, "GetMediaUrl Error")
 	require.NotEmpty(t, result, "GetMediaUrl Result Empty")
-	t.Log(result)
+	t.Log(formatMediaURLForLog(result[0]))
 }
 
 func TestKugou_GetMediaLyric(t *testing.T) {
@@ -87,5 +105,5 @@ func TestKugou_GetMediaLyric(t *testing.T) {
 	result, err := testApi.GetMediaLyric(meta)
 	require.NoError(t, err, "GetMediaLyric Error")
 	require.NotEmpty(t, result, "GetMediaLyric Result Empty")
-	t.Log(result)
+	t.Log(formatLyricsForLog(result[0]))
 }

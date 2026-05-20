@@ -8,10 +8,6 @@ type KugouInstrumental struct {
 	k *Kugou
 }
 
-func (k *KugouInstrumental) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{"magic_acappella"}
-}
-
 func (k *KugouInstrumental) GetName() string {
 	return "kugou-instr"
 }
@@ -46,7 +42,7 @@ func (k *KugouInstrumental) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaIn
 }
 
 func (k *KugouInstrumental) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
-	return k.k.GetMediaUrl(meta, "magic_acappella")
+	return k.k.GetMediaUrl(meta, k.MapQuality(quality))
 }
 
 func (k *KugouInstrumental) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {

@@ -3,7 +3,6 @@ package bilivideo
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/AynaLivePlayer/miaosic"
 	"github.com/tidwall/gjson"
 	"net/url"
 	"sort"
@@ -24,12 +23,12 @@ var (
 	lastUpdateTime time.Time
 )
 
-func signAndGenerateURL(urlStr string) (string, error) {
+func signAndGenerateURL(urlStr string, getWbiKeys func() (string, string)) (string, error) {
 	urlObj, err := url.Parse(urlStr)
 	if err != nil {
 		return "", err
 	}
-	imgKey, subKey := getWbiKeysCached()
+	imgKey, subKey := getWbiKeysCached(getWbiKeys)
 	query := urlObj.Query()
 	params := map[string]string{}
 	for k, v := range query {
@@ -93,7 +92,7 @@ func sanitizeString(s string) string {
 	return s
 }
 
-func updateCache() {
+func updateCache(getWbiKeys func() (string, string)) {
 	if time.Since(lastUpdateTime).Minutes() < 10 {
 		return
 	}
@@ -103,15 +102,17 @@ func updateCache() {
 	lastUpdateTime = time.Now()
 }
 
-func getWbiKeysCached() (string, string) {
-	updateCache()
+func getWbiKeysCached(getWbiKeys func() (string, string)) (string, string) {
+	updateCache(getWbiKeys)
 	imgKeyI, _ := cache.Load("imgKey")
 	subKeyI, _ := cache.Load("subKey")
 	return imgKeyI.(string), subKeyI.(string)
 }
 
-func getWbiKeys() (string, string) {
-	resp, err := miaosic.Requester.Get("https://api.bilibili.com/x/web-interface/nav", biliHeaders)
+func (b *BilibiliVideo) getWbiKeys() (string, string) {
+	resp, err := b.client.R().
+		SetHeaders(biliHeaders).
+		Get("https://api.bilibili.com/x/web-interface/nav")
 	if err != nil {
 		return "", ""
 	}

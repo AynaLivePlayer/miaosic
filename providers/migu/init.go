@@ -1,7 +1,7 @@
-package bilivideo
+package migu
 
 import "github.com/AynaLivePlayer/miaosic"
 
 func Register() {
-	miaosic.RegisterProvider(NewBilibiliViedo())
+	miaosic.RegisterProvider(NewMigu())
 }

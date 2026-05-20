@@ -4,10 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/tidwall/gjson"
-	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
@@ -15,7 +12,7 @@ import (
 
 func (p *QQMusicProvider) makeApiRequest(module, method string, params map[string]interface{}) (gjson.Result, error) {
 	if !p.qimeiUpdated {
-		_, _ = getQimei(p.device, p.cfg.Version)
+		_, _ = getQimeiWithClient(p.client, p.device, p.cfg.Version)
 		p.qimeiUpdated = true
 	}
 
@@ -68,15 +65,10 @@ func (p *QQMusicProvider) makeApiRequest(module, method string, params map[strin
 		uri = p.cfg.EncEndpoint + "?sign=" + url.QueryEscape(qqSignStr(string(jsonData)))
 	}
 
-	request := dphttp.Request{
-		Method: http.MethodPost,
-		Url:    dphttp.UrlMustParse(uri),
-		Header: map[string]string{
-			"Referer":      "https://y.qq.com/",
-			"Content-Type": "application/json",
-			"User-Agent":   "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54",
-		},
-		Data: jsonData,
+	header := map[string]string{
+		"Referer":      "https://y.qq.com/",
+		"Content-Type": "application/json",
+		"User-Agent":   "Mozilla/5.0 (Windows NT 11.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36 Edg/116.0.1938.54",
 	}
 
 	cookieStr := ""
@@ -84,10 +76,13 @@ func (p *QQMusicProvider) makeApiRequest(module, method string, params map[strin
 		cookieStr += fmt.Sprintf("%s=%s;", k, v)
 	}
 	if cookieStr != "" {
-		request.Header["Cookie"] = cookieStr
+		header["Cookie"] = cookieStr
 	}
 
-	response, err := miaosic.Requester.HTTP(&request)
+	response, err := p.client.R().
+		SetHeaders(header).
+		SetBody(jsonData).
+		Post(uri)
 	if err != nil {
 		return gjson.Result{}, err
 	}

@@ -1,10 +1,11 @@
 package local
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
 )
 
 type localPlaylist struct {
@@ -29,10 +30,6 @@ func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, 
 type Local struct {
 	localDir  string
 	playlists map[string]*localPlaylist
-}
-
-func (l *Local) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{miaosic.QualityAny}
 }
 
 func NewLocal(localdir string) *Local {
@@ -86,7 +83,7 @@ func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 	}
 	return []miaosic.MediaUrl{{
 		Url:     path.Join(l.localDir, info.Meta.Identifier),
-		Quality: miaosic.QualityUnk,
+		Quality: l.MapQuality(quality),
 	}}, nil
 }
 

@@ -7,18 +7,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
-	"net/url"
 	"regexp"
-	"slices"
 	"strings"
 	"time"
 
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/providers"
 	"github.com/AynaLivePlayer/miaosic/utils"
-	"github.com/aynakeya/deepcolor"
-	"github.com/aynakeya/deepcolor/dphttp"
+	"github.com/go-resty/resty/v2"
 	"github.com/tidwall/gjson"
 )
 
@@ -34,25 +29,12 @@ var header = map[string]string{
 // moreover, they even have different vip. which means lite vip can't access standard vip.
 
 type Kugou struct {
-	providers.DeepcolorProvider
 	cookie    map[string]string
 	appid     string
 	clientver string
 	signkey   string
 	dfid      string // dfid. default should be "-"
-}
-
-func (k *Kugou) Qualities() []miaosic.Quality {
-	return []miaosic.Quality{
-		Quality128k,
-		Quality320k,
-		QualityFlac,
-		QualityHigh,
-		QualityViperTape,
-		QualityViperClear,
-		QualityViperHiFi,
-		QualityViperAtmosphere,
-	}
+	client    *resty.Client
 }
 
 func (k *Kugou) cookieString() string {
@@ -69,94 +51,95 @@ func NewKugou(useLite bool) *Kugou {
 		clientver: clientver,
 		signkey:   signkey,
 		dfid:      "-",
+		client:    resty.New().SetTimeout(3 * time.Second),
 	}
 	if useLite {
 		pvdr.appid = appidLite
 		pvdr.clientver = clientverLite
 		pvdr.signkey = signkeyLite
 	}
-	pvdr.InfoApi = deepcolor.CreateApiResultFunc(
-		func(meta miaosic.MetaData) (*dphttp.Request, error) {
-			uri, _ := url.Parse("http://media.store.kugou.com/v2/get_res_privilege/lite")
-			data := map[string]interface{}{
-				"appid":            pvdr.appid,
-				"area_code":        1,
-				"behavior":         "play",
-				"clientver":        pvdr.clientver,
-				"need_hash_offset": 1,
-				"relate":           1,
-				"support_verify":   1,
-				"resource": []map[string]interface{}{
-					{
-						"type":     "audio",
-						"page_id":  0,
-						"hash":     meta.Identifier,
-						"album_id": 0,
-					},
-				},
-				"qualities": []string{"128", "320", "flac", "high", "viper_atmos", "viper_tape"},
-			}
-			dataRaw, _ := json.Marshal(data)
-			return &dphttp.Request{
-				Method:  http.MethodPost,
-				Url:     uri,
-				Header:  map[string]string{"Content-Type": "application/json", "x-router": "media.store.kugou.com"},
-				Data:    dataRaw,
-				Timeout: 3,
-			}, nil
-		},
-		deepcolor.ParserGJson,
-		func(result *gjson.Result, media *miaosic.MediaInfo) error {
-			if result.Get("data.0.name").String() == "" {
-				return errors.New("failed to find required data")
-			}
-			artist := result.Get("data.0.singername").String()
-			media.Title = strings.TrimPrefix(result.Get("data.0.name").String(), artist+" - ")
-			media.Artists = strings.Split(artist, "、")
-			media.Artist = strings.Join(media.Artists, ",")
-			media.Album = result.Get("data.0.albumname").String()
-			media.Cover.Url = strings.Replace(result.Get("data.0.info.image").String(), "{size}", result.Get("data.0.info.imgsize.0").String(), 1)
-			return nil
-		})
-	pvdr.SearchApi = deepcolor.CreateApiResultFunc(
-		func(param providers.MediaSearchParam) (*dphttp.Request, error) {
-			return deepcolor.NewGetRequestWithQuery(
-				"http://mobilecdn.kugou.com/api/v3/search/song?keyword=reol&page=1&pagesize=10",
-				map[string]any{
-					"keyword":  param.Keyword,
-					"page":     param.Page,
-					"pagesize": param.PageSize,
-				},
-				header)
-		},
-		deepcolor.ParserGJson,
-		func(resp *gjson.Result, result *[]miaosic.MediaInfo) error {
-			if resp.Get("errcode").Int() != 0 {
-				return errors.New("kugou: search api error" + resp.Get("error").String())
-			}
-			//fmt.Println(resp.String())
-			// Assuming data contains a list of search results
-			for _, r := range resp.Get("data.info").Array() {
-				media := miaosic.MediaInfo{
-					Title:  r.Get("songname").String(),
-					Album:  r.Get("album_name").String(),
-					Cover:  miaosic.Picture{},
-					Artist: r.Get("singername").String(),
-					Meta: miaosic.MetaData{
-						Provider:   pvdr.GetName(),
-						Identifier: r.Get("hash").String(),
-					},
-				}
-				*result = append(*result, media)
-			}
-			return nil
-		})
 	pvdr.cookie = make(map[string]string)
 	return pvdr
 }
 
 func (k *Kugou) GetName() string {
 	return "kugou"
+}
+
+func (k *Kugou) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
+	resp, err := k.client.R().
+		SetHeaders(header).
+		SetQueryParams(map[string]string{
+			"keyword":  keyword,
+			"page":     fmt.Sprintf("%d", page),
+			"pagesize": fmt.Sprintf("%d", size),
+		}).
+		Get("http://mobilecdn.kugou.com/api/v3/search/song?keyword=reol&page=1&pagesize=10")
+	if err != nil {
+		return nil, err
+	}
+	respResult := gjson.ParseBytes(resp.Body())
+	if respResult.Get("errcode").Int() != 0 {
+		return nil, errors.New("kugou: search api error" + respResult.Get("error").String())
+	}
+	//fmt.Println(resp.String())
+	// Assuming data contains a list of search results
+	result := make([]miaosic.MediaInfo, 0)
+	for _, r := range respResult.Get("data.info").Array() {
+		media := miaosic.MediaInfo{
+			Title:  r.Get("songname").String(),
+			Album:  r.Get("album_name").String(),
+			Cover:  miaosic.Picture{},
+			Artist: r.Get("singername").String(),
+			Meta: miaosic.MetaData{
+				Provider:   k.GetName(),
+				Identifier: r.Get("hash").String(),
+			},
+		}
+		result = append(result, media)
+	}
+	return result, nil
+}
+
+func (k *Kugou) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
+	data := map[string]interface{}{
+		"appid":            k.appid,
+		"area_code":        1,
+		"behavior":         "play",
+		"clientver":        k.clientver,
+		"need_hash_offset": 1,
+		"relate":           1,
+		"support_verify":   1,
+		"resource": []map[string]interface{}{
+			{
+				"type":     "audio",
+				"page_id":  0,
+				"hash":     meta.Identifier,
+				"album_id": 0,
+			},
+		},
+		"qualities": []string{"128", "320", "flac", "high", "viper_atmos", "viper_tape"},
+	}
+	dataRaw, _ := json.Marshal(data)
+	resp, err := k.client.R().
+		SetHeaders(map[string]string{"Content-Type": "application/json", "x-router": "media.store.kugou.com"}).
+		SetBody(dataRaw).
+		Post("http://media.store.kugou.com/v2/get_res_privilege/lite")
+	if err != nil {
+		return miaosic.MediaInfo{}, err
+	}
+	result := gjson.ParseBytes(resp.Body())
+	media := miaosic.MediaInfo{Meta: meta}
+	if result.Get("data.0.name").String() == "" {
+		return miaosic.MediaInfo{}, errors.New("failed to find required data")
+	}
+	artist := result.Get("data.0.singername").String()
+	media.Title = strings.TrimPrefix(result.Get("data.0.name").String(), artist+" - ")
+	media.Artists = strings.Split(artist, "、")
+	media.Artist = strings.Join(media.Artists, ",")
+	media.Album = result.Get("data.0.albumname").String()
+	media.Cover.Url = strings.Replace(result.Get("data.0.info.image").String(), "{size}", result.Get("data.0.info.imgsize.0").String(), 1)
+	return media, nil
 }
 
 var kugouIdRegex = regexp.MustCompile("^[0-9a-zA-Z]{32,32}$")
@@ -171,37 +154,11 @@ func (k *Kugou) MatchMedia(uri string) (miaosic.MetaData, bool) {
 	return miaosic.MetaData{}, false
 }
 
-func (k *Kugou) quality2str(quality miaosic.Quality) string {
-	if slices.Contains(k.Qualities(), quality) {
-		return string(quality)
-	}
-	var qualityStr string
-	if strings.HasPrefix(string(quality), "magic_") {
-		qualityStr = string(quality)
-	} else {
-		switch quality {
-		case miaosic.Quality128k:
-			qualityStr = "128"
-		case miaosic.Quality192k:
-		case miaosic.Quality256k:
-		case miaosic.Quality320k:
-			qualityStr = "320"
-		case miaosic.QualityHQ:
-			qualityStr = "high"
-		case miaosic.QualitySQ:
-			qualityStr = "flac"
-		default:
-			qualityStr = "320"
-		}
-	}
-	return qualityStr
-}
-
 // todo using new api https://github.com/MakcRe/KuGouMusicApi/blob/main/module/song_url_new.js
 func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
 	//albumId := jsonResp.Get("data.0.audio_id").String()
 	currentUnix := time.Now().UnixMilli()
-	qualityStr := k.quality2str(quality)
+	qualityStr := string(k.MapQuality(quality))
 	data := map[string]any{
 		"album_audio_id": 0,
 		"appid":          k.appid,
@@ -221,7 +178,7 @@ func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 		"version":        11709,
 		"page_id":        312258376,
 		"quality":        qualityStr,
-		"ppgea_id":       "463467626,350369493,788954147",
+		"ppage_id":       "463467626,350369493,788954147",
 		"cdnBackup":      1,
 		"kcard":          0,
 		"ptype":          0,
@@ -237,16 +194,15 @@ func (k *Kugou) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]m
 		data["key"] = signKey(k.appid, meta.Identifier, getMD5Hash(k.dfid), userId)
 	}
 	data["signature"] = signatureAndroidParams(k.signkey, data, "")
-	urlReq, _ := deepcolor.NewGetRequestWithQuery(
-		"https://gateway.kugou.com/v5/url",
-		data, map[string]string{
+	urlResp, err := k.client.R().
+		SetHeaders(map[string]string{
 			"x-router":   "tracker.kugou.com",
 			"dfid":       k.dfid,
 			"mid":        getMD5Hash(k.dfid),
 			"clienttime": fmt.Sprintf("%d", currentUnix),
-		},
-	)
-	urlResp, err := miaosic.Requester.HTTP(urlReq)
+		}).
+		SetQueryParams(k.stringifyParams(data)).
+		Get("https://gateway.kugou.com/v5/url")
 	if err != nil {
 		return nil, err
 	}
@@ -270,12 +226,12 @@ func getMD5Hash(text string) string {
 
 func (k *Kugou) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	// http://lyrics.kugou.com/search?ver=1&man=yes&client=pc&keyword=&duration=&hash=c79c062ff4b362ac253031c6e577e722
-	lyricReq, _ := deepcolor.NewGetRequestWithQuery(
-		"http://lyrics.kugou.com/search?ver=1&man=yes&client=pc&keyword=&duration=",
-		map[string]any{
+	resp, err := k.client.R().
+		SetHeaders(header).
+		SetQueryParams(k.stringifyParams(map[string]any{
 			"hash": meta.Identifier,
-		}, header)
-	resp, err := miaosic.Requester.HTTP(lyricReq)
+		})).
+		Get("http://lyrics.kugou.com/search?ver=1&man=yes&client=pc&keyword=&duration=")
 	if err != nil {
 		return nil, err
 	}
@@ -287,13 +243,13 @@ func (k *Kugou) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	if len(candidates) == 0 {
 		return nil, errors.New("kugou: no lyric found")
 	}
-	lyricContentReq, _ := deepcolor.NewGetRequestWithQuery(
-		"http://lyrics.kugou.com/download?ver=1&client=pc&id=&accesskey=&fmt=lrc&charset=utf8",
-		map[string]any{
+	lyricResp, err := k.client.R().
+		SetHeaders(header).
+		SetQueryParams(k.stringifyParams(map[string]any{
 			"id":        candidates[0].Get("id").String(),
 			"accesskey": candidates[0].Get("accesskey").String(),
-		}, header)
-	lyricResp, err := miaosic.Requester.HTTP(lyricContentReq)
+		})).
+		Get("http://lyrics.kugou.com/download?ver=1&client=pc&id=&accesskey=&fmt=lrc&charset=utf8")
 	if err != nil {
 		return nil, err
 	}

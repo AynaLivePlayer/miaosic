@@ -1,0 +1,18 @@
+KugouMusicApi 对齐基线：
+ref/KuGouMusicApi commit 566de02034493af31c5a44f124429cbc1cb11b13（2026-05-20 更新曲谱相关接口）
+
+TODO：
+- 对齐 privilege_lite/song_url_new 的音质支持：
+  如果 miaosic 里可用，补充 super 和 multitrack 的 quality const/mapping，
+  并在 GetMediaInfo 的 privilege 请求中带上 viper_clear、super、multitrack。
+- 重新检查 GetMediaUrl：
+  先修正当前 /v5/url 请求里的 ppage_id 拼写，
+  再评估是否迁移到 song_url_new.js 使用的 /v6/priv_url。
+  新接口依赖 album_audio_id/MixSongID，以及 token、vip_token、userid、
+  vip_type、KUGOU_API_MID 等登录相关字段。
+- 按需对齐当前 search_lyric.js 和 lyric.js 的歌词搜索/下载流程：
+  /v1/search 现在支持从参数传 duration，
+  歌词下载支持 android client、krc/lrc 格式，以及可选 krc 解码。
+- 将 Search 更新到 complexsearch.kugou.com 流程：
+  使用 /v3/search/song 和 x-router complexsearch.kugou.com，
+  去掉当前 mobilecdn URL 中硬编码的 keyword/page/pagesize。

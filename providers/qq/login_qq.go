@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/go-resty/resty/v2"
 	"github.com/google/uuid"
 	"github.com/spf13/cast"
 	"image"
@@ -20,9 +19,8 @@ import (
 )
 
 func (p *QQMusicProvider) getQQQR() (*miaosic.QrLoginSession, error) {
-	resp, err := miaosic.Requester.GetQuery(
-		"https://ssl.ptlogin2.qq.com/ptqrshow",
-		map[string]string{
+	resp, err := p.client.R().
+		SetQueryParams(map[string]string{
 			"appid":      "716027609",
 			"e":          "2",
 			"l":          "M",
@@ -32,11 +30,11 @@ func (p *QQMusicProvider) getQQQR() (*miaosic.QrLoginSession, error) {
 			"t":          cast.ToString(rng.Float64()),
 			"daid":       "383",
 			"pt_3rd_aid": "100497308",
-		},
-		map[string]string{
+		}).
+		SetHeaders(map[string]string{
 			"Referer": "https://ssl.ptlogin2.qq.com/",
-		},
-	)
+		}).
+		Get("https://ssl.ptlogin2.qq.com/ptqrshow")
 	if err != nil {
 		return nil, err
 	}
@@ -78,9 +76,8 @@ func (p *QQMusicProvider) getQQQR() (*miaosic.QrLoginSession, error) {
 
 func (p *QQMusicProvider) checkQQQR(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLoginResult, error) {
 	ptqrtoken := strconv.Itoa(hash33(qrlogin.Key, 0))
-	resp, err := miaosic.Requester.GetQuery(
-		"https://ssl.ptlogin2.qq.com/ptqrlogin",
-		map[string]string{
+	resp, err := p.client.R().
+		SetQueryParams(map[string]string{
 			"u1":         "https://graph.qq.com/oauth2.0/login_jump",
 			"ptqrtoken":  ptqrtoken,
 			"ptredirect": "0",
@@ -97,12 +94,12 @@ func (p *QQMusicProvider) checkQQQR(qrlogin *miaosic.QrLoginSession) (*miaosic.Q
 			"daid":       "383",
 			"pt_3rd_aid": "100497308",
 			"has_onekey": "1",
-		},
-		map[string]string{
+		}).
+		SetHeaders(map[string]string{
 			"Referer": "https://xui.ptlogin2.qq.com/",
 			"Cookie":  "qrsig=" + qrlogin.Key,
-		},
-	)
+		}).
+		Get("https://ssl.ptlogin2.qq.com/ptqrlogin")
 	if err != nil {
 		return &miaosic.QrLoginResult{Success: false, Message: "http error, might be invalid qrsig"}, err
 	}
@@ -165,9 +162,7 @@ func (p *QQMusicProvider) authorizeQQQR(qrlogin *miaosic.QrLoginSession, urlStr 
 	//	return nil, err
 	//}
 
-	respR, err := resty.New().
-		SetRedirectPolicy(resty.NoRedirectPolicy()).
-		R().
+	respR, err := p.loginClient.R().
 		SetHeader("Referer", "https://xui.ptlogin2.qq.com/").
 		Get(urlStr)
 
@@ -206,9 +201,7 @@ func (p *QQMusicProvider) authorizeQQQR(qrlogin *miaosic.QrLoginSession, urlStr 
 	formData.Set("auth_time", strconv.FormatInt(time.Now().UnixMilli(), 10))
 	formData.Set("ui", uuid.New().String())
 
-	respR, err = resty.New().
-		SetRedirectPolicy(resty.NoRedirectPolicy()).
-		R().
+	respR, err = p.loginClient.R().
 		SetCookies(respR.Cookies()).
 		SetFormDataFromValues(formData).
 		SetHeaders(map[string]string{

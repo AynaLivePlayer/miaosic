@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/go-resty/resty/v2"
 	"github.com/spf13/cast"
 	_ "image/jpeg" // wechat qrcode is jpg
 	"net/http"
@@ -13,20 +12,19 @@ import (
 )
 
 func (p *QQMusicProvider) getWxQR() (*miaosic.QrLoginSession, error) {
-	resp, err := miaosic.Requester.GetQuery(
-		"https://open.weixin.qq.com/connect/qrconnect",
-		map[string]string{
+	resp, err := p.client.R().
+		SetQueryParams(map[string]string{
 			"appid":         "wx48db31d50e334801",
 			"redirect_uri":  "https://y.qq.com/portal/wx_redirect.html?login_type=2&surl=https://y.qq.com/",
 			"response_type": "code",
 			"scope":         "snsapi_login",
 			"state":         "STATE",
 			"href":          "https://y.qq.com/mediastyle/music_v17/src/css/popup_wechat.css#wechat_redirect",
-		},
-		map[string]string{
+		}).
+		SetHeaders(map[string]string{
 			"Referer": "https://open.weixin.qq.com/connect/qrconnect",
-		},
-	)
+		}).
+		Get("https://open.weixin.qq.com/connect/qrconnect")
 	if err != nil {
 		return nil, err
 	}
@@ -35,13 +33,14 @@ func (p *QQMusicProvider) getWxQR() (*miaosic.QrLoginSession, error) {
 	if len(loginUuid) < 2 {
 		return nil, errors.New("miaosic (qq): failed to get qrcode")
 	}
-	resp, err = miaosic.Requester.GetQuery(
-		"https://open.weixin.qq.com/connect/qrcode/"+loginUuid[1],
-		nil,
-		map[string]string{
+	resp, err = p.client.R().
+		SetHeaders(map[string]string{
 			"Referer": "https://open.weixin.qq.com/connect/qrconnect",
-		},
-	)
+		}).
+		Get("https://open.weixin.qq.com/connect/qrcode/" + loginUuid[1])
+	if err != nil {
+		return nil, err
+	}
 	var qrUrl string
 	// !!! dont remove, might use in future as a fallback option.
 	//{
@@ -73,8 +72,7 @@ func (p *QQMusicProvider) getWxQR() (*miaosic.QrLoginSession, error) {
 }
 
 func (p *QQMusicProvider) checkWxQR(qrlogin *miaosic.QrLoginSession) (*miaosic.QrLoginResult, error) {
-	resp, err := resty.New().SetTimeout(time.Second * 2).
-		R().
+	resp, err := p.wxPollClient.R().
 		SetQueryParams(map[string]string{
 			"uuid": qrlogin.Key,
 			"_":    fmt.Sprintf("%d", time.Now().UnixMilli()),

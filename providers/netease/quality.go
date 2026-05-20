@@ -16,3 +16,38 @@ const (
 	// 空间音感
 	QualitySky miaosic.Quality = "sky" // 沉浸环绕声 Surround Audio svip
 )
+
+func (n *Netease) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{
+		QualityStandard,
+		QualityHigher,
+		QualityExHigh,
+		QualityLossless,
+		QualityHiRes,
+		QualityJyMaster,
+	}
+}
+
+var qualityMap = map[miaosic.Quality]miaosic.Quality{
+	miaosic.QualityAny:      QualityStandard,
+	miaosic.QualityStandard: QualityStandard,
+	miaosic.Quality128k:     QualityStandard,
+	miaosic.Quality192k:     QualityHigher,
+	miaosic.Quality256k:     QualityHigher,
+	miaosic.Quality320k:     QualityExHigh,
+	miaosic.QualityHQ:       QualityExHigh,
+	miaosic.QualitySQ:       QualityLossless,
+	QualityHigher:           QualityHigher,
+	QualityExHigh:           QualityExHigh,
+	QualityLossless:         QualityLossless,
+	QualityHiRes:            QualityHiRes,
+	QualityJyMaster:         QualityJyMaster,
+	QualitySky:              QualitySky,
+}
+
+func (n *Netease) MapQuality(quality miaosic.Quality) miaosic.Quality {
+	if mapped, ok := qualityMap[quality]; ok {
+		return mapped
+	}
+	return QualityStandard
+}

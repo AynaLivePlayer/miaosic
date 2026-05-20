@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/aynakeya/deepcolor/dphttp"
 	"github.com/tidwall/gjson"
 )
 
@@ -16,14 +15,6 @@ const (
 	playlistCollection = "coll"
 	playlistFav        = "fav"
 )
-
-func fetchParsedResult[P dphttp.ParserResultType](requester dphttp.IRequester, request *dphttp.Request, parserFunc dphttp.ParserFunc[P]) (P, error) {
-	httpResp, err := requester.HTTP(request)
-	if err != nil {
-		return *new(P), err
-	}
-	return parserFunc(httpResp)
-}
 
 var playlistCollectionRegex = regexp.MustCompile(`space.bilibili.com/(\d+)/channel/collectiondetail\?sid=(\d+)`)
 var playlistCollection1Regex = regexp.MustCompile(`space\.bilibili\.com/(\d+)/lists/(\d+)`)
@@ -79,7 +70,9 @@ func (n *BilibiliVideo) getCollectionPlaylist(id string) (*miaosic.Playlist, err
 	}
 	for page := 1; page <= 50; page++ {
 		uri := fmt.Sprintf(collApi, id, page)
-		resp, err := miaosic.Requester.Get(uri, biliHeaders)
+		resp, err := n.client.R().
+			SetHeaders(biliHeaders).
+			Get(uri)
 		if err != nil {
 			return nil, err
 		}
@@ -128,7 +121,9 @@ func (n *BilibiliVideo) getFavPlaylist(id string) (*miaosic.Playlist, error) {
 	}
 	for page := 1; page < 51; page++ {
 		uri := fmt.Sprintf(favApi, id, page)
-		resp, err := miaosic.Requester.Get(uri, biliHeaders)
+		resp, err := n.client.R().
+			SetHeaders(biliHeaders).
+			Get(uri)
 		if err != nil {
 			return nil, err
 		}

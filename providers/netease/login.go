@@ -4,9 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/AynaLivePlayer/miaosic"
 	neteaseApi "github.com/XiaoMengXinX/Music163Api-Go/api"
-	"net/http"
 )
 
 func (n *Netease) Login(username string, password string) error {
@@ -21,7 +22,7 @@ func (n *Netease) IsLogin() bool {
 	return status.Account.Id != 0
 }
 
-func (p *Netease) RefreshLogin() error {
+func (n *Netease) RefreshLogin() error {
 	return nil
 }
 

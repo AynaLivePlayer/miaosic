@@ -2,6 +2,6 @@ package kuwo
 
 import "github.com/AynaLivePlayer/miaosic"
 
-func init() {
+func Register() {
 	miaosic.RegisterProvider(NewKuwo())
 }

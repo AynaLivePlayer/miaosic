@@ -12,9 +12,9 @@ import (
 
 const (
 	appid         = "1005"
-	clientver     = "12329"
+	clientver     = "20489"
 	appidLite     = "3116"
-	clientverLite = "10940"
+	clientverLite = "11440"
 
 	signkey     = "OIlwieks28dk2k092lksi2UIkp"
 	signkeyLite = "LnT6xpN3khm36zse0QzvmgTZ3waWdRSA"
@@ -99,4 +99,12 @@ func (k *Kugou) addAndroidParams(origParams map[string]interface{}, data string)
 	params["clienttime"] = fmt.Sprintf("%d", time.Now().Unix())
 	params["signature"] = signatureAndroidParams(k.signkey, params, data)
 	return params
+}
+
+func (k *Kugou) stringifyParams(params map[string]interface{}) map[string]string {
+	result := make(map[string]string, len(params))
+	for key, value := range params {
+		result[key] = fmt.Sprintf("%v", value)
+	}
+	return result
 }

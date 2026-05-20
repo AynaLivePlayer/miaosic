@@ -13,7 +13,6 @@ go 1.25.0
 require (
 	github.com/XiaoMengXinX/Music163Api-Go v0.1.30
 	github.com/abadojack/whatlanggo v1.0.1
-	github.com/aynakeya/deepcolor v1.0.3
 	github.com/bogem/id3v2/v2 v2.1.4
 	github.com/dhowden/tag v0.0.0-20240417053706-3d75831295e8
 	github.com/gabriel-vasile/mimetype v1.4.13

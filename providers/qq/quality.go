@@ -21,6 +21,16 @@ const (
 	QualityACC48   = "C200.m4a"  // ACC_48: m4a 格式,48kbps,size_48aac
 )
 
+func (p *QQMusicProvider) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{
+		QualityMaster, QualityAtmos2, QualityAtmos51,
+		QualityFLAC,
+		QualityOGG640, QualityOGG320, QualityOGG192, QualityOGG96,
+		QualityMP3320, QualityMP3128, QualityACC192,
+		QualityACC96, QualityACC48,
+	}
+}
+
 const (
 	QualityEncMaster  = "AIM0.mflac" // MASTER: 臻品母带2.0,24Bit 192kHz,size_new[0]
 	QualityEncAtmos2  = "Q0M0.mflac" // ATMOS_2: 臻品全景声2.0,16Bit 44.1kHz,size_new[1]
@@ -31,6 +41,45 @@ const (
 	QualityEncOGG192  = "O6M0.mgg"   // OGG_192: mgg 格式,192kbps,size_192ogg
 	QualityEncOGG96   = "O4M0.mgg"   // OGG_96: mgg 格式,96kbps,size_96ogg
 )
+
+var qualityMap = map[miaosic.Quality]miaosic.Quality{
+	miaosic.QualityAny:      QualityMP3320,
+	miaosic.QualityStandard: QualityMP3128,
+	miaosic.Quality128k:     QualityMP3128,
+	miaosic.Quality192k:     QualityOGG192,
+	miaosic.Quality256k:     QualityOGG320,
+	miaosic.Quality320k:     QualityMP3320,
+	miaosic.QualityHQ:       QualityMP3320,
+	miaosic.QualitySQ:       QualityFLAC,
+	QualityMaster:           QualityMaster,
+	QualityAtmos2:           QualityAtmos2,
+	QualityAtmos51:          QualityAtmos51,
+	QualityFLAC:             QualityFLAC,
+	QualityOGG640:           QualityOGG640,
+	QualityOGG320:           QualityOGG320,
+	QualityOGG192:           QualityOGG192,
+	QualityOGG96:            QualityOGG96,
+	QualityMP3320:           QualityMP3320,
+	QualityMP3128:           QualityMP3128,
+	QualityACC192:           QualityACC192,
+	QualityACC96:            QualityACC96,
+	QualityACC48:            QualityACC48,
+	QualityEncMaster:        QualityEncMaster,
+	QualityEncAtmos2:        QualityEncAtmos2,
+	QualityEncAtmos51:       QualityEncAtmos51,
+	QualityEncFLAC:          QualityEncFLAC,
+	QualityEncOGG640:        QualityEncOGG640,
+	QualityEncOGG320:        QualityEncOGG320,
+	QualityEncOGG192:        QualityEncOGG192,
+	QualityEncOGG96:         QualityEncOGG96,
+}
+
+func (p *QQMusicProvider) MapQuality(quality miaosic.Quality) miaosic.Quality {
+	if mapped, ok := qualityMap[quality]; ok {
+		return mapped
+	}
+	return QualityMP3320
+}
 
 func IsQqQuality(quality miaosic.Quality) bool {
 	val := strings.Split(string(quality), ".")

@@ -2,10 +2,9 @@ package kugou
 
 import "github.com/AynaLivePlayer/miaosic"
 
-var api *Kugou
+var api = NewKugou(false)
 
-func init() {
-	api = NewKugou(false)
+func Register() {
 	miaosic.RegisterProvider(api)
 }
 

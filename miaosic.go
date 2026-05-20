@@ -30,14 +30,14 @@ func (m MetaData) ID() string {
 type Quality string
 
 const (
-	QualityAny  Quality = ""
-	QualityUnk  Quality = "unknown"
-	Quality128k Quality = "128k"
-	Quality192k Quality = "192k"
-	Quality256k Quality = "256k"
-	Quality320k Quality = "320k"
-	QualityHQ   Quality = "hq"
-	QualitySQ   Quality = "sq"
+	QualityAny      Quality = ""         // any quality only used when requesting an url, the returned quality should not have this quality
+	QualityStandard Quality = "standard" // standard quality or any unknown quality
+	Quality128k     Quality = "128k"
+	Quality192k     Quality = "192k"
+	Quality256k     Quality = "256k"
+	Quality320k     Quality = "320k"
+	QualityHQ       Quality = "hq"
+	QualitySQ       Quality = "sq"
 )
 
 type MediaUrl struct {
@@ -90,7 +90,10 @@ func (p *Playlist) Copy() Playlist {
 type MediaProvider interface {
 	// GetName returns the name of the provider.
 	GetName() string
+	// Qualities return supported quality by this provider
 	Qualities() []Quality
+	// MapQuality will map input quality into provider specific quality.
+	MapQuality(quality Quality) Quality
 
 	// Search returns a list of MetaData.
 	Search(keyword string, page, size int) ([]MediaInfo, error)
@@ -109,25 +112,4 @@ type MediaProvider interface {
 	MatchPlaylist(uri string) (MetaData, bool)
 	// GetPlaylist returns a Playlist, it fetches all data, so it might be slow.
 	GetPlaylist(meta MetaData) (*Playlist, error)
-}
-
-type QrLoginSession struct {
-	Url string `json:"url"`
-	Key string `json:"key"`
-}
-
-type QrLoginResult struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-}
-
-type Loginable interface {
-	Login(username string, password string) error
-	Logout() error
-	IsLogin() bool
-	RefreshLogin() error
-	QrLogin() (*QrLoginSession, error)
-	QrLoginVerify(qrlogin *QrLoginSession) (*QrLoginResult, error)
-	RestoreSession(session string) error
-	SaveSession() string
 }

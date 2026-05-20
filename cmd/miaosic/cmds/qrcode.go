@@ -2,18 +2,19 @@ package cmds
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/AynaLivePlayer/miaosic/cmd/miaosic/internal"
 	"github.com/spf13/cobra"
 	"github.com/yeqown/go-qrcode/v2"
 	"github.com/yeqown/go-qrcode/writer/file"
-	"os"
 )
 
-var CmdQrlogin = &cobra.Command{
-	Use:   "qrlogin",
-	Short: "QR code login operations",
-	Long:  "Manage provider login sessions using QR code flow.",
+var CmdLogin = &cobra.Command{
+	Use:   "login",
+	Short: "login operations",
+	Long:  "Manage provider login sessions using QR code or other method.",
 }
 
 var getqrcodeCmd = &cobra.Command{
@@ -61,7 +62,7 @@ var getqrcodeCmd = &cobra.Command{
 }
 
 var verifyCmd = &cobra.Command{
-	Use:     "verify <provider> <key>",
+	Use:     "qrverify <provider> <key>",
 	Short:   "Verify QR login",
 	Long:    "Verify a scanned QR login key and persist the provider session.",
 	Example: "  miaosic qrlogin verify netease <key>\n  miaosic --session-file ~/.miaosic_session.json qrlogin verify qq <key>",
@@ -104,6 +105,6 @@ var verifyCmd = &cobra.Command{
 }
 
 func init() {
-	CmdQrlogin.AddCommand(getqrcodeCmd)
-	CmdQrlogin.AddCommand(verifyCmd)
+	CmdLogin.AddCommand(getqrcodeCmd)
+	CmdLogin.AddCommand(verifyCmd)
 }

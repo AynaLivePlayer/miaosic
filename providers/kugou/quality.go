@@ -13,3 +13,53 @@ const (
 	QualityViperHiFi       miaosic.Quality = "viper_hifi"  // 蝰蛇hifi
 	QualityViperAtmosphere miaosic.Quality = "viper_atmos" // 蝰蛇全景声
 )
+
+func (k *Kugou) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{
+		Quality128k,
+		Quality320k,
+		QualityFlac,
+		QualityHigh,
+		QualityViperTape,
+		QualityViperClear,
+		QualityViperHiFi,
+		QualityViperAtmosphere,
+	}
+}
+
+func (k *KugouInstrumental) Qualities() []miaosic.Quality {
+	return []miaosic.Quality{"magic_acappella"}
+}
+
+var qualityMap = map[miaosic.Quality]miaosic.Quality{
+	miaosic.QualityAny:      Quality320k,
+	miaosic.QualityStandard: Quality128k,
+	miaosic.Quality128k:     Quality128k,
+	miaosic.Quality192k:     Quality320k,
+	miaosic.Quality256k:     Quality320k,
+	miaosic.Quality320k:     Quality320k,
+	miaosic.QualityHQ:       QualityHigh,
+	miaosic.QualitySQ:       QualityFlac,
+	Quality128k:             Quality128k,
+	Quality320k:             Quality320k,
+	QualityFlac:             QualityFlac,
+	QualityHigh:             QualityHigh,
+	QualityViperTape:        QualityViperTape,
+	QualityViperClear:       QualityViperClear,
+	QualityViperHiFi:        QualityViperHiFi,
+	QualityViperAtmosphere:  QualityViperAtmosphere,
+}
+
+func (k *Kugou) MapQuality(quality miaosic.Quality) miaosic.Quality {
+	if mapped, ok := qualityMap[quality]; ok {
+		return mapped
+	}
+	if len(quality) > len("magic_") && string(quality[:len("magic_")]) == "magic_" {
+		return quality
+	}
+	return Quality320k
+}
+
+func (k *KugouInstrumental) MapQuality(quality miaosic.Quality) miaosic.Quality {
+	return "magic_acappella"
+}

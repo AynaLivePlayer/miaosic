@@ -4,7 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
+	"github.com/go-resty/resty/v2"
 	"strings"
 	"time"
 )
@@ -172,7 +172,11 @@ func qimeiRandomPayloadByDevice(device *Device, version string) *qimeiPayload {
 }
 
 func getQimei(device *Device, version string) (*QimeiResult, error) {
-	result, err := fetchQimei(device, version)
+	return getQimeiWithClient(resty.New().SetTimeout(3*time.Second), device, version)
+}
+
+func getQimeiWithClient(client *resty.Client, device *Device, version string) (*QimeiResult, error) {
+	result, err := fetchQimei(client, device, version)
 	if err == nil {
 		device.Qimei = result.Q36
 		return result, nil
@@ -193,7 +197,7 @@ func qimeiRandomString(length int) string {
 }
 
 // 从腾讯API获取QIMEI
-func fetchQimei(device *Device, version string) (*QimeiResult, error) {
+func fetchQimei(client *resty.Client, device *Device, version string) (*QimeiResult, error) {
 	payload := qimeiRandomPayloadByDevice(device, version)
 	payloadJSON, err := json.Marshal(payload)
 	if err != nil {
@@ -244,9 +248,8 @@ func fetchQimei(device *Device, version string) (*QimeiResult, error) {
 		return nil, err
 	}
 
-	resp, err := miaosic.Requester.Post(
-		"https://api.tencentmusic.com/tme/trpc/proxy",
-		map[string]string{
+	resp, err := client.R().
+		SetHeaders(map[string]string{
 			"Host":         "api.tencentmusic.com",
 			"method":       "GetQimei",
 			"service":      "trpc.tme_datasvr.qimeiproxy.QimeiProxy",
@@ -255,8 +258,9 @@ func fetchQimei(device *Device, version string) (*QimeiResult, error) {
 			"user-agent":   "QQMusic",
 			"timestamp":    fmt.Sprintf("%d", ts/1000),
 			"Content-Type": "application/json",
-		}, requestJSON,
-	)
+		}).
+		SetBody(requestJSON).
+		Post("https://api.tencentmusic.com/tme/trpc/proxy")
 	if err != nil {
 		return nil, err
 	}

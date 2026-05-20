@@ -12,6 +12,10 @@ func init() {
 	//miaosic.RegisterProvider(NewQQMusicProvider("qq"))
 }
 
+func Register() {
+	UseQQLogin()
+}
+
 func UseQQLogin() {
 	miaosic.RegisterProvider(NewQQMusicProvider("qq"))
 }
