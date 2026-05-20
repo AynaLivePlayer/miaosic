@@ -35,13 +35,15 @@ func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, 
 }
 
 type Local struct {
-	localDir   string
-	playlists  map[string]*localPlaylist
-	scanMode   TagScanMode
-	cacheMode  LocalCacheMode
-	mediaByID  map[string]*localMedia
-	searchDocs []localSearchDoc
-	mu         sync.RWMutex
+	localDir             string
+	playlists            map[string]*localPlaylist
+	scanMode             TagScanMode
+	cacheMode            LocalCacheMode
+	mediaByID            map[string]*localMedia
+	searchDocs           []localSearchDoc
+	searchDocByID        map[string]int
+	backgroundScanActive bool
+	mu                   sync.RWMutex
 }
 
 func NewLocal(localdir string, options ...LocalOption) *Local {
@@ -53,11 +55,12 @@ func NewLocal(localdir string, options ...LocalOption) *Local {
 		option.applyLocalOption(&opts)
 	}
 	l := &Local{
-		localDir:  localdir,
-		playlists: make(map[string]*localPlaylist, 0),
-		scanMode:  opts.scanMode,
-		cacheMode: opts.cacheMode,
-		mediaByID: make(map[string]*localMedia, 0),
+		localDir:      localdir,
+		playlists:     make(map[string]*localPlaylist, 0),
+		scanMode:      opts.scanMode,
+		cacheMode:     opts.cacheMode,
+		mediaByID:     make(map[string]*localMedia, 0),
+		searchDocByID: make(map[string]int, 0),
 	}
 	if err := os.MkdirAll(localdir, 0755); err != nil {
 		return l
@@ -162,6 +165,7 @@ func (l *Local) rebuildIndexes() {
 func (l *Local) rebuildIndexesLocked() {
 	l.mediaByID = make(map[string]*localMedia)
 	l.searchDocs = l.searchDocs[:0]
+	l.searchDocByID = make(map[string]int)
 	for _, playlist := range l.playlists {
 		for idx := range playlist.medias {
 			media := &playlist.medias[idx]
@@ -174,6 +178,7 @@ func (l *Local) rebuildIndexesLocked() {
 				info:   media.info,
 				search: media.search,
 			})
+			l.searchDocByID[identifier] = len(l.searchDocs) - 1
 		}
 	}
 }

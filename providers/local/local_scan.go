@@ -46,15 +46,38 @@ func (l *Local) scanPlaylistTags(playlist *localPlaylist) {
 }
 
 func (l *Local) scanTagsInBackground() {
+	l.mu.Lock()
+	if l.backgroundScanActive {
+		l.mu.Unlock()
+		return
+	}
+	l.backgroundScanActive = true
+	l.mu.Unlock()
+
 	go func() {
-		changed := false
-		for _, identifier := range l.unloadedMediaIdentifiers() {
-			if _, mediaChanged, err := l.loadMediaTag(identifier, false); err == nil {
-				changed = changed || mediaChanged
+		defer func() {
+			l.mu.Lock()
+			l.backgroundScanActive = false
+			l.mu.Unlock()
+			if len(l.unloadedMediaIdentifiers()) > 0 {
+				l.scanTagsInBackground()
 			}
-		}
-		if changed {
-			l.saveTagCache()
+		}()
+
+		for {
+			identifiers := l.unloadedMediaIdentifiers()
+			if len(identifiers) == 0 {
+				return
+			}
+			changed := false
+			for _, identifier := range identifiers {
+				if _, mediaChanged, err := l.loadMediaTag(identifier, false); err == nil {
+					changed = changed || mediaChanged
+				}
+			}
+			if changed {
+				l.saveTagCache()
+			}
 		}
 	}()
 }
@@ -140,8 +163,8 @@ func (l *Local) updateMediaTagLocked(media *localMedia, loadedMedia localMedia, 
 		media.coverLoaded = true
 	}
 
-	for idx := range l.searchDocs {
-		if l.searchDocs[idx].info.Meta.Identifier == loadedMedia.info.Meta.Identifier {
+	if idx, ok := l.searchDocByID[loadedMedia.info.Meta.Identifier]; ok {
+		if idx >= 0 && idx < len(l.searchDocs) {
 			l.searchDocs[idx] = localSearchDoc{
 				info:   loadedMedia.info,
 				search: media.search,

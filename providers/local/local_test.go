@@ -97,6 +97,40 @@ func TestLocalSearchPaginatesFromIndex(t *testing.T) {
 	require.Equal(t, "indexed/song-002.mp3", result[0].Meta.Identifier)
 }
 
+func TestLocalSearchDocIndexUpdatedOnTagLoad(t *testing.T) {
+	provider := &Local{
+		playlists: map[string]*localPlaylist{
+			"indexed": {
+				name: "indexed",
+				medias: []localMedia{
+					newIndexedTestMedia("indexed/song-001.mp3", "song alpha"),
+					newIndexedTestMedia("indexed/song-002.mp3", "song beta"),
+				},
+			},
+		},
+	}
+	provider.rebuildIndexes()
+
+	media := provider.mediaByID["indexed/song-002.mp3"]
+	updated := localMedia{info: media.info}
+	updated.info.Title = "updated title"
+	updated.info.Artist = "updated artist"
+
+	provider.mu.Lock()
+	provider.updateMediaTagLocked(media, updated, false)
+	provider.mu.Unlock()
+
+	idx, ok := provider.searchDocByID["indexed/song-002.mp3"]
+	require.True(t, ok)
+	require.Equal(t, "updated title", provider.searchDocs[idx].info.Title)
+	require.Equal(t, "updated artist", provider.searchDocs[idx].info.Artist)
+
+	result, err := provider.Search("updated artist", 1, 10)
+	require.NoError(t, err)
+	require.NotEmpty(t, result)
+	require.Equal(t, "indexed/song-002.mp3", result[0].Meta.Identifier)
+}
+
 func TestLocalTagScanModes(t *testing.T) {
 	localDir := t.TempDir()
 	playlistName := "demo"
@@ -118,6 +152,12 @@ func TestLocalTagScanModes(t *testing.T) {
 		return allTagsAttempted(withBackgroundTags, playlistName)
 	}, time.Second, 10*time.Millisecond)
 	require.False(t, anyCoverAttempted(withBackgroundTags, playlistName))
+}
+
+func TestLocalBackgroundTagScanStartsOnce(t *testing.T) {
+	provider := &Local{backgroundScanActive: true}
+	provider.scanTagsInBackground()
+	require.True(t, provider.backgroundScanActive)
 }
 
 func TestLocalTagCache(t *testing.T) {
