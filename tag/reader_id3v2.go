@@ -1,8 +1,9 @@
 package tag
 
 import (
-	"github.com/bogem/id3v2/v2"
 	"io"
+
+	"github.com/bogem/id3v2/v2"
 )
 
 func ReadID3v2Tags(r io.ReadSeeker) (Metadata, error) {

@@ -3,11 +3,6 @@ package cmds
 import (
 	"bytes"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/AynaLivePlayer/miaosic/tag"
-	"github.com/gabriel-vasile/mimetype"
-	"github.com/schollz/progressbar/v3"
-	"github.com/spf13/cobra"
 	"io"
 	"net/http"
 	"net/url"
@@ -15,6 +10,12 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/AynaLivePlayer/miaosic/tag"
+	"github.com/gabriel-vasile/mimetype"
+	"github.com/schollz/progressbar/v3"
+	"github.com/spf13/cobra"
 )
 
 var (

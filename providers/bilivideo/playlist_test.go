@@ -1,8 +1,9 @@
 package bilivideo
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestBilibiliVideo_MatchPlaylist_Ok(t *testing.T) {

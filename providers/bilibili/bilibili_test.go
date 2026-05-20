@@ -1,9 +1,10 @@
 package bilibili
 
 import (
+	"testing"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 var api miaosic.MediaProvider = NewBilibili()

@@ -3,11 +3,12 @@ package tag
 import (
 	"bytes"
 	"errors"
-	"github.com/gabriel-vasile/mimetype"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/gabriel-vasile/mimetype"
 )
 
 func fixMeta(meta *Metadata) {

@@ -1,8 +1,9 @@
 package qq
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
 )
 
 const (

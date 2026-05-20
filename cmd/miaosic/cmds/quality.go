@@ -3,9 +3,10 @@ package cmds
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 func init() {

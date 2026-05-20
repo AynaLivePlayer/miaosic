@@ -3,13 +3,14 @@ package bilivideo
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"github.com/tidwall/gjson"
 	"net/url"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/tidwall/gjson"
 )
 
 var (

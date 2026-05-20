@@ -4,9 +4,10 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/go-resty/resty/v2"
 	"strings"
 	"time"
+
+	"github.com/go-resty/resty/v2"
 )
 
 const (

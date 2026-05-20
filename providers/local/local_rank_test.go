@@ -2,11 +2,12 @@ package local
 
 import (
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/sahilm/fuzzy"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/sahilm/fuzzy"
 )
 
 var testData = []miaosic.MediaInfo{

@@ -1,8 +1,9 @@
 package miaosic
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 var lrc1 = `[0:0]没有你陪伴我真的好孤单 - 冷漠 (MoMo Leng)

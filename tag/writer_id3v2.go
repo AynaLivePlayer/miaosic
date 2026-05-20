@@ -2,10 +2,11 @@ package tag
 
 import (
 	"fmt"
-	"github.com/bogem/id3v2/v2"
 	"io"
 	"os"
 	"strings"
+
+	"github.com/bogem/id3v2/v2"
 )
 
 func setID3v2Metadata(tag *id3v2.Tag, meta Metadata) {

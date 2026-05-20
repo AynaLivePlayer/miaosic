@@ -5,9 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/tidwall/gjson"
-	"time"
 )
 
 func (n *Kugou) Login(username string, password string) error {

@@ -3,9 +3,10 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
 	"os"
 	"path/filepath"
+
+	"github.com/AynaLivePlayer/miaosic"
 )
 
 var (

@@ -1,10 +1,11 @@
 package local
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/sahilm/fuzzy"
 	"sort"
 	"strings"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/sahilm/fuzzy"
 )
 
 type mediaRanking struct {

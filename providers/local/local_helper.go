@@ -1,6 +1,11 @@
 package local
 
 import (
+	"os"
+	"path"
+	"path/filepath"
+	"strings"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/dhowden/tag"
 	"github.com/saintfish/chardet"
@@ -12,10 +17,6 @@ import (
 	"golang.org/x/text/encoding/traditionalchinese"
 	"golang.org/x/text/encoding/unicode"
 	"golang.org/x/text/transform"
-	"os"
-	"path"
-	"path/filepath"
-	"strings"
 )
 
 var detector = chardet.NewTextDetector()

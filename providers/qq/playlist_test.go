@@ -1,9 +1,10 @@
 package qq
 
 import (
+	"testing"
+
 	"github.com/k0kubun/pp/v3"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestQQMusicProvider_MatchPlaylist(t *testing.T) {

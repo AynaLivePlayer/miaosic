@@ -1,12 +1,13 @@
 package bilivideo
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var api miaosic.MediaProvider = NewBilibiliViedo()

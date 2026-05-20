@@ -3,9 +3,10 @@ package cmds
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/spf13/cobra"
-	"strings"
 )
 
 var (

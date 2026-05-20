@@ -4,15 +4,16 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/google/uuid"
-	"github.com/spf13/cast"
 	"image"
 	_ "image/png" // qq qrcode is png
 	"net/url"
 	"regexp"
 	"strconv"
 	"time"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/google/uuid"
+	"github.com/spf13/cast"
 
 	"github.com/makiuchi-d/gozxing"
 	"github.com/makiuchi-d/gozxing/qrcode"

@@ -11,10 +11,11 @@ import (
 	"encoding/hex"
 	"encoding/pem"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic/providers/qq/goqrcdec"
 	"math/rand"
 	"strconv"
 	"time"
+
+	"github.com/AynaLivePlayer/miaosic/providers/qq/goqrcdec"
 )
 
 var rng *rand.Rand

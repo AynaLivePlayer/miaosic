@@ -1,10 +1,11 @@
 package qq
 
 import (
+	"testing"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/k0kubun/pp/v3"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestQQ_getQrcodeWx(t *testing.T) {

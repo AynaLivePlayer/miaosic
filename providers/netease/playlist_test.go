@@ -1,10 +1,11 @@
 package netease
 
 import (
+	"testing"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestGetPlaylist(t *testing.T) {

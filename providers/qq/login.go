@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
 	"time"
+
+	"github.com/AynaLivePlayer/miaosic"
 )
 
 func (p *QQMusicProvider) Login(username string, password string) error {

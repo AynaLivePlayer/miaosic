@@ -3,12 +3,13 @@ package qq
 import (
 	"errors"
 	"fmt"
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/spf13/cast"
 	_ "image/jpeg" // wechat qrcode is jpg
 	"net/http"
 	"regexp"
 	"time"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/spf13/cast"
 )
 
 func (p *QQMusicProvider) getWxQR() (*miaosic.QrLoginSession, error) {

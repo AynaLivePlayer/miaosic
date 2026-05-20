@@ -1,11 +1,12 @@
 package qq
 
 import (
+	"os"
+	"testing"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/k0kubun/pp/v3"
 	"github.com/stretchr/testify/require"
-	"os"
-	"testing"
 )
 
 var testApi *QQMusicProvider

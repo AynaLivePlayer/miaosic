@@ -3,10 +3,11 @@ package kuwo
 import (
 	"encoding/base64"
 
-	"github.com/AynaLivePlayer/miaosic"
-	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+
+	"github.com/AynaLivePlayer/miaosic"
+	"github.com/stretchr/testify/require"
 )
 
 var api miaosic.MediaProvider = NewKuwo()

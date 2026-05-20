@@ -1,11 +1,12 @@
 package miaosic
 
 import (
-	"github.com/spf13/cast"
 	"math"
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/spf13/cast"
 )
 
 var timeTagRegex = regexp.MustCompile("\\[[0-9]+(\\.[0-9]+)?:[0-9]+(\\.[0-9]+)?\\]")

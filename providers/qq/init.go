@@ -1,9 +1,10 @@
 package qq
 
 import (
-	"github.com/AynaLivePlayer/miaosic"
 	"math/rand"
 	"time"
+
+	"github.com/AynaLivePlayer/miaosic"
 )
 
 func init() {

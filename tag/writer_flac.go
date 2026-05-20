@@ -2,11 +2,12 @@ package tag
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/AynaLivePlayer/miaosic"
 	"github.com/go-flac/flacpicture/v2"
 	"github.com/go-flac/flacvorbis/v2"
 	"github.com/go-flac/go-flac/v2"
-	"os"
 )
 
 type posMetaBlock[T any] struct {
