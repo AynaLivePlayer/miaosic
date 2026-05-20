@@ -1,11 +1,14 @@
 package kuwo
 
 import (
-	"errors"
+	"encoding/base64"
 	"fmt"
 	"html"
+	"io"
 	"math"
 	"math/rand"
+	"net"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,6 +20,10 @@ import (
 	"github.com/spf13/cast"
 	"github.com/tidwall/gjson"
 )
+
+const kuwoConvertURL2Source = "kwplayer_ar_5.1.0.0_B_jiakong_vh.apk"
+
+var kuwoDownloadURLRegex = regexp.MustCompile(`http[^\s"]+`)
 
 type Kuwo struct {
 	PlaylistRegex0 *regexp.Regexp
@@ -43,8 +50,8 @@ func NewKuwo() *Kuwo {
 func (k *Kuwo) initToken() {
 	k.header = map[string]string{
 		"accept": "application/json, text/plain, */*",
-		"cookie": "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324=jyFmNrCGQK2fZ2TYMwnFNzw5PwTBhMjs",
-		"secret": k.generateSecret("jyFmNrCGQK2fZ2TYMwnFNzw5PwTBhMjs", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"),
+		"cookie": "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324=T3WtFh7AT3ZMkFrrhEGe8iRhA85SdM8b",
+		"secret": k.generateSecret("T3WtFh7AT3ZMkFrrhEGe8iRhA85SdM8b", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"),
 	}
 	//searchCookie, err := k.requester.Get("http://kuwo.cn/search/list?key=any", nil)
 	//fmt.Println(searchCookie.Header(), err)
@@ -105,42 +112,86 @@ func (k *Kuwo) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 }
 
 func (k *Kuwo) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
-	// 128kmp3、192kmp3、320kmp3、2000kflac
-	// https://github.com/QiuYaohong/kuwoMusicApi/issues/24
-	qualityStr := string(k.MapQuality(quality))
-	// outdated: source=kwplayer_ar_10.8.2.1_qq.apk
-	// https://github.com/QiuYaohong/kuwoMusicApi/issues/24#issuecomment-2142606594
-	resp, err := k.client.R().
-		SetHeaders(k.header).
-		SetQueryParams(map[string]string{
-			"rid": meta.Identifier,
-			"br":  qualityStr,
-		}).
-		Get("http://mobi.kuwo.cn/mobi.s?f=web&source=kwplayercar_ar_6.0.0.9_B_jiakong_vh.apk&user=C_APK_guanwang_12609069939969033731&type=convert_url_with_sign&br=320kmp3")
+	var lastErr error
+	for _, providerQuality := range k.mediaURLQualities(quality) {
+		mediaUrl, err := k.getMediaUrlConvertURL2(meta.Identifier, providerQuality)
+		if err == nil {
+			return []miaosic.MediaUrl{mediaUrl}, nil
+		}
+		lastErr = err
+	}
+	return nil, lastErr
+}
+
+func (k *Kuwo) mediaURLQualities(quality miaosic.Quality) []miaosic.Quality {
+	providerQuality := k.MapQuality(quality)
+	if providerQuality == QualityFlac {
+		return []miaosic.Quality{QualityFlac, QualityMp3}
+	}
+	return []miaosic.Quality{providerQuality}
+}
+
+func (k *Kuwo) getMediaUrlConvertURL2(id string, quality miaosic.Quality) (miaosic.MediaUrl, error) {
+	format := "mp3"
+	if quality == QualityFlac {
+		format = "flac"
+	}
+
+	query := fmt.Sprintf("user=0&corp=kuwo&source=%s&p2p=1&type=convert_url2&sig=0&format=%s&rid=%s", kuwoConvertURL2Source, format, id)
+	values := url.Values{}
+	values.Set("f", "kuwo")
+	values.Set("q", base64.StdEncoding.EncodeToString(Encrypt([]byte(query))))
+
+	body, err := kuwoGetMobiBody("/mobi.s?" + values.Encode())
+	if err != nil {
+		return miaosic.MediaUrl{}, err
+	}
+	rawURL := kuwoDownloadURLRegex.FindString(string(body))
+	if rawURL == "" {
+		return miaosic.MediaUrl{}, miaosic.ErrorExternalApi
+	}
+	return miaosic.NewMediaUrl(rawURL, kuwoMiaosicQuality(quality)), nil
+}
+
+func kuwoGetMobiBody(path string) ([]byte, error) {
+	conn, err := (&net.Dialer{Timeout: 5 * time.Second}).Dial("tcp", "mobi.kuwo.cn:80")
 	if err != nil {
 		return nil, err
 	}
-	respResult := gjson.ParseBytes(resp.Body())
-	if respResult.Get("code").Int() != 200 {
-		return nil, errors.New("miaosic: kuwo api error" + respResult.Get("msg").String())
+	defer conn.Close()
+
+	if err := conn.SetDeadline(time.Now().Add(8 * time.Second)); err != nil {
+		return nil, err
 	}
-	if respResult.Get("data.url").String() == "" {
+	req := fmt.Sprintf("GET %s HTTP/1.1\r\nHost: mobi.kuwo.cn\r\nUser-Agent: okhttp/3.10.0\r\nConnection: close\r\n\r\n", path)
+	if _, err := conn.Write([]byte(req)); err != nil {
+		return nil, err
+	}
+	body, readErr := io.ReadAll(conn)
+	if len(body) == 0 {
+		if readErr != nil {
+			return nil, readErr
+		}
 		return nil, miaosic.ErrorExternalApi
 	}
-	var respQuality miaosic.Quality
-	switch respResult.Get("data.bitrate").Int() {
-	case 320:
-		respQuality = miaosic.Quality320k
-	case 256:
-		respQuality = miaosic.Quality256k
-	case 192:
-		respQuality = miaosic.Quality192k
-	case 128:
-		respQuality = miaosic.Quality128k
+	return body, nil
+}
+
+func kuwoMiaosicQuality(quality miaosic.Quality) miaosic.Quality {
+	switch quality {
+	case QualityMp3, Quality320kMp3:
+		return miaosic.Quality320k
+	case Quality256kMp3:
+		return miaosic.Quality256k
+	case Quality192kMp3:
+		return miaosic.Quality192k
+	case Quality128kMp3:
+		return miaosic.Quality128k
+	case QualityFlac:
+		return miaosic.QualitySQ
 	default:
-		respQuality = miaosic.QualityStandard
+		return miaosic.QualityStandard
 	}
-	return []miaosic.MediaUrl{miaosic.NewMediaUrl(respResult.Get("data.url").String(), respQuality)}, nil
 }
 
 func (k *Kuwo) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {

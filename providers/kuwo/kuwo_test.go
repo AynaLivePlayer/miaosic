@@ -2,9 +2,8 @@ package kuwo
 
 import (
 	"encoding/base64"
-	"fmt"
+
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
@@ -24,6 +23,13 @@ func TestKuwo_Secret2(t *testing.T) {
 	t.Log(
 		api.(*Kuwo).generateSecret("Z3mc22m5FG2cezTznhS6YPNMPD5HnzSn", "Hm_Iuvt_cdb524f42f23cer9b268564v7y735ewrq2324"))
 
+}
+
+func TestKuwo_Qualities(t *testing.T) {
+	require.Equal(t, []miaosic.Quality{
+		QualityMp3,
+		QualityFlac,
+	}, api.Qualities())
 }
 
 func TestKuwo_Search(t *testing.T) {
@@ -60,6 +66,34 @@ func TestKuwo_GetMusic(t *testing.T) {
 	t.Log(urls)
 }
 
+func TestKuwo_GetMusicHighQuality(t *testing.T) {
+	meta := miaosic.MetaData{
+		Provider:   api.GetName(),
+		Identifier: "22804772",
+	}
+	urls, err := api.GetMediaUrl(meta, miaosic.QualityHQ)
+	require.NoError(t, err)
+	require.NotEmpty(t, urls)
+	require.True(t, strings.HasPrefix(urls[0].Url, "http"))
+	require.Contains(t, urls[0].Url, "format$mp3")
+	require.Equal(t, miaosic.Quality320k, urls[0].Quality)
+	t.Logf("quality=%s url=%s", urls[0].Quality, urls[0].Url)
+}
+
+func TestKuwo_GetMusicLosslessQuality(t *testing.T) {
+	meta := miaosic.MetaData{
+		Provider:   api.GetName(),
+		Identifier: "228908",
+	}
+	urls, err := api.GetMediaUrl(meta, miaosic.QualitySQ)
+	require.NoError(t, err)
+	require.NotEmpty(t, urls)
+	require.True(t, strings.HasPrefix(urls[0].Url, "http"))
+	require.Contains(t, urls[0].Url, "format$flac")
+	require.Equal(t, miaosic.QualitySQ, urls[0].Quality)
+	t.Logf("quality=%s url=%s", urls[0].Quality, urls[0].Url)
+}
+
 func TestKuwo_GetMusic2(t *testing.T) {
 	meta := miaosic.MetaData{
 		Provider:   api.GetName(),
@@ -86,13 +120,13 @@ func TestKuwo_UpdateMediaLyric(t *testing.T) {
 // https://github.com/cnsilvan/UnblockNeteaseMusic/blob/master/provider/kuwo/kuwo.go
 // http://anymatch.kuwo.cn/mobi.s?f=kwxs&q=
 // http://mobi.kuwo.cn/mobi.s?f=kuwo&q=
-func TestKuwo_Url(t *testing.T) {
-	format := "mp3"
-	br := "&br=128kmp3"
-	url := "http://mobi.kuwo.cn/mobi.s?f=kuwo&q=" + base64.StdEncoding.EncodeToString(Encrypt([]byte("source=jiakong&p2p=1&sig=1476474&type=convert_url_with_sign&format="+format+"&rid="+"6536164"+br)))
-	result, err := resty.New().R().Get(url)
-	fmt.Println(err)
-	fmt.Println(result.String())
+func TestKuwo_ConvertURL2(t *testing.T) {
+	mediaURL, err := api.(*Kuwo).getMediaUrlConvertURL2("22804772", QualityMp3)
+	require.NoError(t, err)
+	require.True(t, strings.HasPrefix(mediaURL.Url, "http"))
+	require.Contains(t, mediaURL.Url, "format$mp3")
+	require.Equal(t, miaosic.Quality320k, mediaURL.Quality)
+	t.Logf("quality=%s url=%s", mediaURL.Quality, mediaURL.Url)
 }
 
 func TestKuwo_DesDecCar(t *testing.T) {
@@ -100,7 +134,7 @@ func TestKuwo_DesDecCar(t *testing.T) {
 	//require.NoError(t, err)
 	t.Log(err)
 	val := Decrypt(val1)
-	fmt.Println(string(val))
+	t.Log(string(val))
 }
 
 func TestKuwo_CarApi(t *testing.T) {
