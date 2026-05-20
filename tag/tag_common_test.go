@@ -104,6 +104,18 @@ func assertMetadata(t *testing.T, expected Metadata, got Metadata, checkLyrics, 
 	}
 }
 
+func assertFFProbeReadable(t *testing.T, path string) {
+	t.Helper()
+	out, err := exec.Command("ffprobe",
+		"-hide_banner",
+		"-loglevel", "error",
+		"-show_entries", "format=format_name:stream=codec_type",
+		"-of", "json",
+		path,
+	).CombinedOutput()
+	require.NoErrorf(t, err, "ffprobe should parse %s after tag write\n%s", path, out)
+}
+
 func requireFFmpeg(t *testing.T) {
 	t.Helper()
 	_, err := exec.LookPath("ffmpeg")

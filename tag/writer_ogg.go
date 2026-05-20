@@ -19,6 +19,14 @@ type oggPage struct {
 	data       []byte
 }
 
+type oggPacket struct {
+	data       []byte
+	headerType byte
+	granule    uint64
+	startPage  int
+	endPage    int
+}
+
 func WriteOGGTags(f *os.File, meta Metadata) error {
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		return err
@@ -35,51 +43,36 @@ func WriteOGGTags(f *os.File, meta Metadata) error {
 		return fmt.Errorf("miaosic: empty ogg file")
 	}
 
-	var packets [][]byte
-	headerEndPage := -1
-	var current []byte
-	for pageIdx, page := range pages {
-		segments := int(page.data[26])
-		payload := page.data[27+segments:]
-		pos := 0
-		for _, lace := range page.data[27 : 27+segments] {
-			l := int(lace)
-			if pos+l > len(payload) {
-				return fmt.Errorf("miaosic: invalid ogg segment table")
-			}
-			current = append(current, payload[pos:pos+l]...)
-			pos += l
-			if lace < 255 {
-				packets = append(packets, current)
-				current = nil
-				if len(packets) == 3 {
-					headerEndPage = pageIdx
-					break
-				}
-			}
-		}
-		if headerEndPage >= 0 {
-			break
-		}
-	}
-	if len(packets) < 2 || headerEndPage < 0 {
-		return fmt.Errorf("miaosic: ogg comment packet not found")
-	}
-
-	comment, err := buildOggCommentPacket(packets[1], meta)
+	packets, err := parseOggPackets(pages)
 	if err != nil {
 		return err
 	}
-	packets[1] = comment
+	if len(packets) < 2 {
+		return fmt.Errorf("miaosic: ogg comment packet not found")
+	}
+
+	headerPackets, err := oggHeaderPacketCount(packets)
+	if err != nil {
+		return err
+	}
+	if len(packets) < headerPackets {
+		return fmt.Errorf("miaosic: ogg header packet not found")
+	}
+
+	comment, err := buildOggCommentPacket(packets[1].data, meta)
+	if err != nil {
+		return err
+	}
+	packets[1].data = comment
 
 	var out bytes.Buffer
 	seq := uint32(0)
-	for i, packet := range packets[:3] {
-		headerType := byte(0)
+	for i, packet := range packets[:headerPackets] {
+		headerType := packet.headerType &^ 0x01
 		if i == 0 {
 			headerType = 0x02
 		}
-		newPages, err := encodeOggPacketPages(packet, pages[0].serial, seq, headerType, 0)
+		newPages, err := encodeOggPacketPages(packet.data, pages[0].serial, seq, headerType, 0)
 		if err != nil {
 			return err
 		}
@@ -88,7 +81,25 @@ func WriteOGGTags(f *os.File, meta Metadata) error {
 			seq++
 		}
 	}
-	for _, page := range pages[headerEndPage+1:] {
+
+	headerEndPage := packets[headerPackets-1].endPage
+	firstPreservedPage := headerEndPage + 1
+	for i := headerPackets; i < len(packets) && packets[i].startPage == headerEndPage; i++ {
+		packet := packets[i]
+		newPages, err := encodeOggPacketPages(packet.data, pages[0].serial, seq, packet.headerType&^0x03, packet.granule)
+		if err != nil {
+			return err
+		}
+		for _, page := range newPages {
+			out.Write(page)
+			seq++
+		}
+		if packet.endPage >= firstPreservedPage {
+			firstPreservedPage = packet.endPage + 1
+		}
+	}
+
+	for _, page := range pages[firstPreservedPage:] {
 		p := append([]byte(nil), page.data...)
 		p[5] &^= 0x02
 		binary.LittleEndian.PutUint32(p[18:22], seq)
@@ -105,6 +116,57 @@ func WriteOGGTags(f *os.File, meta Metadata) error {
 	}
 	_, err = f.Write(out.Bytes())
 	return err
+}
+
+func parseOggPackets(pages []oggPage) ([]oggPacket, error) {
+	var packets []oggPacket
+	var current []byte
+	var headerType byte
+	startPage := -1
+	for pageIdx, page := range pages {
+		segments := int(page.data[26])
+		payload := page.data[27+segments:]
+		pos := 0
+		for _, lace := range page.data[27 : 27+segments] {
+			size := int(lace)
+			if pos+size > len(payload) {
+				return nil, fmt.Errorf("miaosic: invalid ogg segment table")
+			}
+			if current == nil {
+				headerType = page.headerType
+				startPage = pageIdx
+			}
+			current = append(current, payload[pos:pos+size]...)
+			pos += size
+			if lace < 255 {
+				packets = append(packets, oggPacket{
+					data:       current,
+					headerType: headerType,
+					granule:    page.granule,
+					startPage:  startPage,
+					endPage:    pageIdx,
+				})
+				current = nil
+				headerType = 0
+				startPage = -1
+			}
+		}
+	}
+	if len(current) > 0 {
+		return nil, fmt.Errorf("miaosic: unfinished ogg packet")
+	}
+	return packets, nil
+}
+
+func oggHeaderPacketCount(packets []oggPacket) (int, error) {
+	switch {
+	case len(packets) >= 2 && bytes.HasPrefix(packets[0].data, []byte("OpusHead")) && bytes.HasPrefix(packets[1].data, []byte("OpusTags")):
+		return 2, nil
+	case len(packets) >= 3 && bytes.HasPrefix(packets[0].data, []byte("\x01vorbis")) && bytes.HasPrefix(packets[1].data, []byte("\x03vorbis")):
+		return 3, nil
+	default:
+		return 0, fmt.Errorf("miaosic: unsupported ogg header packets")
+	}
 }
 
 func parseOggPages(data []byte) ([]oggPage, error) {

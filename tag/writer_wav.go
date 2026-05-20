@@ -35,7 +35,8 @@ func WriteWAVTags(f *os.File, meta Metadata) error {
 		if size%2 == 1 {
 			next++
 		}
-		if id != "LIST" && id != "id3 " && id != "ID3 " {
+		payload := data[off+8 : payloadEnd]
+		if !shouldRemoveWAVChunk(id, payload) {
 			out.Write(data[off:next])
 		}
 		off = next
@@ -56,6 +57,17 @@ func WriteWAVTags(f *os.File, meta Metadata) error {
 	}
 	_, err = f.Write(result)
 	return err
+}
+
+func shouldRemoveWAVChunk(id string, payload []byte) bool {
+	switch id {
+	case "id3 ", "ID3 ":
+		return true
+	case "LIST":
+		return len(payload) >= 4 && string(payload[:4]) == "INFO"
+	default:
+		return false
+	}
 }
 
 func wavInfoPayload(meta Metadata) []byte {

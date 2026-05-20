@@ -18,6 +18,7 @@ func TestTagRoundTripCommonFormats(t *testing.T) {
 			meta := testMetadata(tc.name, cover)
 
 			require.NoError(t, WriteTo(path, meta))
+			assertFFProbeReadable(t, path)
 			got := readMetadata(t, path)
 			assertMetadata(t, meta, got, true, true)
 		})

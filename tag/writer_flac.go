@@ -21,29 +21,24 @@ func WriteFlacTags(f *os.File, meta Metadata) error {
 		return fmt.Errorf("error parsing flac file: %w", err)
 	}
 	var commentBlock posMetaBlock[*flacvorbis.MetaDataBlockVorbisComment]
-	var pictures = map[byte]posMetaBlock[*flacpicture.MetadataBlockPicture]{}
-	var pic *flacpicture.MetadataBlockPicture
 	var cmt *flacvorbis.MetaDataBlockVorbisComment
-	for idx, metaBlock := range flacFile.Meta {
+	metaBlocks := make([]*flac.MetaDataBlock, 0, len(flacFile.Meta))
+	for _, metaBlock := range flacFile.Meta {
 		if metaBlock.Type == flac.VorbisComment {
 			cmt, err = flacvorbis.ParseFromMetaDataBlock(*metaBlock)
 			if err == nil {
 				commentBlock = posMetaBlock[*flacvorbis.MetaDataBlockVorbisComment]{
 					block: cmt,
-					idx:   idx,
+					idx:   len(metaBlocks),
 				}
 			}
 		}
 		if metaBlock.Type == flac.Picture {
-			pic, err = flacpicture.ParseFromMetaDataBlock(*metaBlock)
-			if err == nil {
-				pictures[byte(pic.PictureType)] = posMetaBlock[*flacpicture.MetadataBlockPicture]{
-					block: pic,
-					idx:   idx,
-				}
-			}
+			continue
 		}
+		metaBlocks = append(metaBlocks, metaBlock)
 	}
+	flacFile.Meta = metaBlocks
 	// write comment, include basic info and lyrcis
 	commentBlockExists := true
 	if commentBlock.block == nil {
@@ -74,13 +69,8 @@ func WriteFlacTags(f *os.File, meta Metadata) error {
 		if err != nil {
 			continue
 		}
-		picBlock, ok := pictures[picture.Type]
 		picBlockMeta := newPic.Marshal()
-		if ok {
-			flacFile.Meta[picBlock.idx] = &picBlockMeta
-		} else {
-			flacFile.Meta = append(flacFile.Meta, &picBlockMeta)
-		}
+		flacFile.Meta = append(flacFile.Meta, &picBlockMeta)
 	}
 	return flacFile.Save(f.Name())
 }
