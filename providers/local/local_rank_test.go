@@ -1,13 +1,10 @@
 package local
 
 import (
-	"fmt"
-	"sort"
-	"strings"
 	"testing"
 
 	"github.com/AynaLivePlayer/miaosic"
-	"github.com/sahilm/fuzzy"
+	"github.com/stretchr/testify/require"
 )
 
 var testData = []miaosic.MediaInfo{
@@ -40,39 +37,20 @@ var testData = []miaosic.MediaInfo{
 }
 
 func TestLocal_SearchTest1(t *testing.T) {
-	testPattern := "王菲"
-	patterns := strings.Split(testPattern, " ")
-	data := make([]*mediaRanking, 0)
-
-	for _, media := range testData {
-		m := media
-		data = append(data, &mediaRanking{
-			media: &m,
-			score: 0,
-		})
-	}
-	dataStr := make([]string, 0)
-	for _, d := range data {
-		dataStr = append(dataStr, strings.ToLower(d.media.Title+" "+d.media.Artist))
-	}
-
-	for _, pattern := range patterns {
-		for _, match := range fuzzy.Find(pattern, dataStr) {
-			data[match.Index].score += match.Score
-		}
-	}
-
-	sort.Slice(data, func(i, j int) bool {
-		return data[i].score > data[j].score
-	})
-
-	for _, d := range data {
-		fmt.Println(d.score, d.media)
-	}
+	result := rankMedia("王菲", &testData)
+	require.NotEmpty(t, result)
+	require.Equal(t, "王菲", result[0].Artist)
 }
 
 func TestLocal_SearchTest2(t *testing.T) {
-	for _, media := range rankMedia("怪物 reol", &testData) {
-		fmt.Println(media)
-	}
+	result := rankMedia("怪物 reol", &testData)
+	require.NotEmpty(t, result)
+	require.Equal(t, "怪物", result[0].Title)
+	require.Equal(t, "reol", result[0].Artist)
+}
+
+func TestLocal_RankEmptyKeywordReturnsAll(t *testing.T) {
+	result := rankMedia("", &testData)
+	require.Len(t, result, len(testData))
+	require.Equal(t, testData[0], result[0])
 }

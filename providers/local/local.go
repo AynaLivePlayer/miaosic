@@ -4,6 +4,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/AynaLivePlayer/miaosic"
 )
@@ -16,6 +17,8 @@ type localPlaylist struct {
 type localMedia struct {
 	info    miaosic.MediaInfo
 	quality miaosic.Quality
+	loaded  bool
+	search  string
 }
 
 func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
@@ -28,12 +31,19 @@ func (l *localPlaylist) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, 
 }
 
 type Local struct {
-	localDir  string
-	playlists map[string]*localPlaylist
+	localDir   string
+	playlists  map[string]*localPlaylist
+	mediaByID  map[string]*localMedia
+	searchDocs []localSearchDoc
+	mu         sync.RWMutex
 }
 
 func NewLocal(localdir string) *Local {
-	l := &Local{localDir: localdir, playlists: make(map[string]*localPlaylist, 0)}
+	l := &Local{
+		localDir:  localdir,
+		playlists: make(map[string]*localPlaylist, 0),
+		mediaByID: make(map[string]*localMedia, 0),
+	}
 	if err := os.MkdirAll(localdir, 0755); err != nil {
 		return l
 	}
@@ -43,6 +53,7 @@ func NewLocal(localdir string) *Local {
 			l.playlists[playlist.name] = playlist
 		}
 	}
+	l.rebuildIndexes()
 	return l
 }
 
@@ -62,18 +73,36 @@ func (l *Local) GetMediaInfo(meta miaosic.MetaData) (miaosic.MediaInfo, error) {
 	if meta.Provider != l.GetName() {
 		return miaosic.MediaInfo{}, miaosic.ErrorDifferentProvider
 	}
-	playlist, ok := l.playlists[l.metaToId(meta)]
+	l.mu.RLock()
+	media, ok := l.mediaByID[meta.Identifier]
+	if ok && media.loaded {
+		info := media.info
+		l.mu.RUnlock()
+		return info, nil
+	}
+	l.mu.RUnlock()
 	if !ok {
 		return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
 	}
-	for _, m := range playlist.medias {
-		if m.info.Meta.Identifier == meta.Identifier {
-			newM := m
-			_ = readMediaFile(l.localDir, &newM)
-			return newM.info, nil
-		}
+
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	media, ok = l.mediaByID[meta.Identifier]
+	if !ok {
+		return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
 	}
-	return miaosic.MediaInfo{}, miaosic.ErrorInvalidMediaMeta
+	if media.loaded {
+		return media.info, nil
+	}
+
+	if err := readMediaFile(l.localDir, media); err != nil {
+		media.loaded = true
+		return media.info, nil
+	}
+	media.loaded = true
+	media.search = localSearchText(media.info)
+	l.rebuildIndexesLocked()
+	return media.info, nil
 }
 
 func (l *Local) GetMediaUrl(meta miaosic.MetaData, quality miaosic.Quality) ([]miaosic.MediaUrl, error) {
@@ -99,13 +128,16 @@ func (l *Local) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 }
 
 func (l *Local) Search(keyword string, page, size int) ([]miaosic.MediaInfo, error) {
-	allMedias := make([]miaosic.MediaInfo, 0)
-	for _, p := range l.playlists {
-		for _, m := range p.medias {
-			allMedias = append(allMedias, m.info)
-		}
+	if page < 1 {
+		page = 1
 	}
-	rankedMedias := rankMedia(keyword, &allMedias)
+	if size <= 0 {
+		return []miaosic.MediaInfo{}, nil
+	}
+	l.mu.RLock()
+	docs := append([]localSearchDoc(nil), l.searchDocs...)
+	l.mu.RUnlock()
+	rankedMedias := rankLocalSearchDocs(keyword, docs)
 	total := len(rankedMedias)
 	startIdx := (page - 1) * size
 	endIdx := page * size
@@ -116,4 +148,29 @@ func (l *Local) Search(keyword string, page, size int) ([]miaosic.MediaInfo, err
 		endIdx = total
 	}
 	return rankedMedias[startIdx:endIdx], nil
+}
+
+func (l *Local) rebuildIndexes() {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.rebuildIndexesLocked()
+}
+
+func (l *Local) rebuildIndexesLocked() {
+	l.mediaByID = make(map[string]*localMedia)
+	l.searchDocs = l.searchDocs[:0]
+	for _, playlist := range l.playlists {
+		for idx := range playlist.medias {
+			media := &playlist.medias[idx]
+			identifier := media.info.Meta.Identifier
+			l.mediaByID[identifier] = media
+			if media.search == "" {
+				media.search = localSearchText(media.info)
+			}
+			l.searchDocs = append(l.searchDocs, localSearchDoc{
+				info:   media.info,
+				search: media.search,
+			})
+		}
+	}
 }

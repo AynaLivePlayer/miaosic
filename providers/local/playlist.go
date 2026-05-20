@@ -14,9 +14,12 @@ func (l *Local) GetPlaylist(meta miaosic.MetaData) (*miaosic.Playlist, error) {
 	err := readLocalPlaylist(l.localDir, playlist)
 	if err != nil {
 		return nil, err
-
 	}
+	l.mu.Lock()
 	l.playlists[playlist.name] = playlist
+	l.rebuildIndexesLocked()
+	l.mu.Unlock()
+
 	medias := make([]miaosic.MediaInfo, 0)
 	for _, m := range playlist.medias {
 		medias = append(medias, m.info)

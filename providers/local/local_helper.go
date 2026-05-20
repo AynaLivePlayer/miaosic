@@ -77,26 +77,42 @@ func readLocalPlaylist(localdir string, playlist *localPlaylist) error {
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		return err
 	}
-	items, _ := os.ReadDir(fullPath)
+	items, err := os.ReadDir(fullPath)
+	if err != nil {
+		return err
+	}
 	for _, item := range items {
 		// if item is a file, read file
 		if !item.IsDir() {
 			fn := item.Name()
+			if !isSupportedLocalAudioFile(fn) {
+				continue
+			}
 			media := localMedia{
 				info: miaosic.MediaInfo{
+					Title:  fn,
+					Artist: "Unknown",
+					Album:  "Unknown",
 					Meta: miaosic.MetaData{
 						Provider:   "local",
 						Identifier: path.Join(playlist.name, fn),
 					},
 				},
 			}
-			if err := readMediaFileInfo(localdir, &media); err != nil {
-				continue
-			}
+			media.search = localSearchText(media.info)
 			playlist.medias = append(playlist.medias, media)
 		}
 	}
 	return nil
+}
+
+func isSupportedLocalAudioFile(name string) bool {
+	switch strings.ToLower(filepath.Ext(name)) {
+	case ".mp3", ".flac", ".wav", ".ogg", ".opus", ".m4a", ".mp4", ".aac", ".alac":
+		return true
+	default:
+		return false
+	}
 }
 
 func _getOrDefault(s string, def string) string {
@@ -126,23 +142,6 @@ func readMediaFile(localdir string, media *localMedia) error {
 	return nil
 }
 
-func readMediaFileInfo(localdir string, media *localMedia) error {
-	p := path.Join(localdir, media.info.Meta.Identifier)
-	f, err := os.Open(p)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	meta, err := tag.ReadFrom(f)
-	if err != nil {
-		return err
-	}
-	media.info.Title = _getOrDefault(meta.Title(), filepath.Base(p))
-	media.info.Artist = _getOrDefault(meta.Artist(), "Unknown")
-	media.info.Album = _getOrDefault(meta.Album(), "Unknown")
-	return nil
-}
-
 func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 	lyrics := make([]miaosic.Lyrics, 0)
 	p := path.Join(localdir, meta.Identifier)
@@ -159,8 +158,8 @@ func readLyric(localdir string, meta miaosic.MetaData) ([]miaosic.Lyrics, error)
 		}
 	}
 	f, err := os.Open(p)
-	defer f.Close()
 	if err == nil {
+		defer f.Close()
 		mMeta, err := tag.ReadFrom(f)
 		if err == nil {
 			name := "builtin"
