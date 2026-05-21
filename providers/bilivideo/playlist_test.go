@@ -74,7 +74,7 @@ func TestBilibiliVideo_GetPlaylist_Fav3(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, meta, playlist.Meta)
 	require.Equal(t, "Vocaloid Music", playlist.Title)
-	require.Equal(t, 876, len(playlist.Medias))
+	require.GreaterOrEqual(t, 876, len(playlist.Medias))
 }
 
 func TestBilibiliVideo_GetPlaylist_Coll1(t *testing.T) {

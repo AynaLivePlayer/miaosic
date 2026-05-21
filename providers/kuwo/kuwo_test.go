@@ -142,16 +142,3 @@ func TestKuwo_CarApi(t *testing.T) {
 	//query := "user=C_APK_guanwang_e1699663d6664f1bbd04faad379c290c&randomcode=e1699663d6664f1bbd04faad379c290c&prod=kwplayercar_ar_6.3.9.40&corp=kuwo&vipver=8.5.5.0&source=kwplayercar_ar_6.3.9.40_C_APK_guanwang.apk&packageName=cn.kuwo.kwmusiccar&packageSign=c29a5a2ca235f326a4800335ecafbf31ace2d0a2&q36=f8cc39a5ae393f56713d909010001d418608&loginUid=&loginSid=&carModel=null&type=lyric&songname=%E7%AC%AC%E5%85%AD%E6%84%9F&artist=Reol&filename=&duration=191000&req=2&lrcx=1&rid=146301111&encode=utf8"
 	//query := "vipver=8.5.5.0&source=kwplayercar_ar_6.3.9.40_C_APK_guanwang.apk&loginUid=&loginSid=&carModel=null&type=lyric&songname=%E7%AC%AC%E5%85%AD%E6%84%9F&artist=Reol&filename=&duration=191000&req=2&lrcx=1&rid=146301111&encode=utf8"
 }
-
-//func TestKuwo_GetPlaylist(t *testing.T) {
-//	playlist := miaosic.Playlist{
-//		Meta: miaosic.MetaData{
-//			Provider:   api.GetName(),
-//			Identifier: "2959147566",
-//		},
-//	}
-//	err := api.UpdatePlaylist(&playlist)
-//	require.NoError(t, err)
-//	require.NotEmpty(t, playlist.Medias)
-//	t.Logf("sucessfully get %d medias", len(playlist.Medias))
-//}

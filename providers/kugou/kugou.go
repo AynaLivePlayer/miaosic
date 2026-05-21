@@ -74,7 +74,7 @@ func (k *Kugou) Search(keyword string, page, size int) ([]miaosic.MediaInfo, err
 			"page":     fmt.Sprintf("%d", page),
 			"pagesize": fmt.Sprintf("%d", size),
 		}).
-		Get("http://mobilecdn.kugou.com/api/v3/search/song?keyword=reol&page=1&pagesize=10")
+		Get("http://mobilecdn.kugou.com/api/v3/search/song")
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +249,7 @@ func (k *Kugou) GetMediaLyric(meta miaosic.MetaData) ([]miaosic.Lyrics, error) {
 			"id":        candidates[0].Get("id").String(),
 			"accesskey": candidates[0].Get("accesskey").String(),
 		})).
-		Get("http://lyrics.kugou.com/download?ver=1&client=pc&id=&accesskey=&fmt=lrc&charset=utf8")
+		Get("http://lyrics.kugou.com/download?ver=1&client=pc&fmt=lrc&charset=utf8")
 	if err != nil {
 		return nil, err
 	}

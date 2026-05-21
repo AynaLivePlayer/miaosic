@@ -47,7 +47,10 @@ type Local struct {
 }
 
 func NewLocal(localdir string, options ...LocalOption) *Local {
-	opts := localOptions{}
+	opts := localOptions{
+		scanMode:  ScanTagOnStartup,
+		cacheMode: UseLocalCache,
+	}
 	for _, option := range options {
 		if option == nil {
 			continue
@@ -78,6 +81,8 @@ func NewLocal(localdir string, options ...LocalOption) *Local {
 		l.scanTagsOnStartup()
 	case ScanTagInBackground:
 		l.scanTagsInBackground()
+	default:
+		// do nothing
 	}
 	return l
 }
